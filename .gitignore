@@ -1,0 +1,22 @@
+*.axf
+*.htm
+*.Inp
+*.map
+*.tra
+*.dep
+*.__i
+*.crf
+*.d
+*.o
+*.lst
+*.lnp
+*.bak
+*.daniel
+*."Robert Noe"
+*.RobertNoe
+*.uvopt
+*.uvgui
+*.uvgui.daniel
+*.uvgui.RobertNoe
+*.uvgui."Robert Noe"
+*.build_log.htm
