@@ -35,7 +35,7 @@
 %	DOCUMENT INFORMATION
 %----------------------------------------------------------------------------------------
 
-\title{Lab 1\\ Talk-Thru\\ EE 445S} % Title
+\title{Lab 2\\ Signal Generation\\ EE 445S} % Title
 
 \author{Enoc \textsc{Balderas}} % Author name
 
@@ -47,9 +47,8 @@
 
 \begin{center}
 \begin{tabular}{l r}
-Date Performed: & January 28, 2019 \\ % Date the experiment was performed
-% Partners: & James Smith \\ % Partner names
-% & Mary Smith \\
+Date Performed: & February 4, 2019 \\ % Date the experiment was performed
+Partners: & Daniel Smith \\ % Partner names
 Instructor: & Professor Evans % Instructor/supervisor
 \end{tabular}
 \end{center}
@@ -65,23 +64,16 @@ Instructor: & Professor Evans % Instructor/supervisor
 
 \section{Introduction}
 
-\begin{figure}[h]
-  \begin{center}
+\subsection{Difference Equation}
+\subsection{EDMA: Look Up Table}
 
-    \begin{subfigure}[b]{0.5\linewidth}
-      \includegraphics[width=\linewidth]{img/time_dom.png}
-      \caption{Time Domain}
-    \end{subfigure}
-
-    \begin{subfigure}[b]{0.5\linewidth}
-      \includegraphics[width=\linewidth]{img/freq_dom.png}
-      \caption{Frequency Domain}
-    \end{subfigure}
-
-  \caption{1kHz Sine wave}
-  \end{center}
-\end{figure}
-
+For this lab we focused on generating sinusoidal signals. 
+We tested the performance and resolution of three different signal generation methods, math library function calls, resonator, and look up table (LUT).
+The math library function call uses an 11th order polynomial to aproximate the sinusoid.
+The resonator is derived from the z-transform of a single sided causal sinusoid.
+$y[n] = sin(w_0)x[n-1] + 2cos(w_0)y[n-1] - y[n-2]$ is the difference equation that represents the transfer function.
+The main benefit of having a LUT is that we can have very good resolution and not much computation.
+The only drawback is that we have to store the table.
  
 %----------------------------------------------------------------------------------------
 %	SECTION 2
@@ -89,23 +81,12 @@ Instructor: & Professor Evans % Instructor/supervisor
 
 \section{Methods}
 
-\begin{figure}[H]
-  \begin{center}
+\subsection{Difference Equation}
+\subsection{EDMA: Look Up Table}
 
-    \begin{subfigure}[b]{0.5\linewidth}
-      \includegraphics[width=\linewidth]{img/time_dom.png}
-      \caption{Time Domain}
-    \end{subfigure}
+For part 1 we created global variables for the angle and the initial conditions. Next we used a simplified version of the difference equation to get the next value. Next we buffered the new outputs. Finally we scaled the output before writing it to the codec.
 
-    \begin{subfigure}[b]{0.5\linewidth}
-      \includegraphics[width=\linewidth]{img/freq_dom.png}
-      \caption{Frequency Domain}
-    \end{subfigure}
-
-  \caption{1kHz Sine wave}
-  \end{center}
-\end{figure}
-
+For part 2 we calculated the $gcd(f, f_s)$ to find the number of samples needed to represent the sinosoid. Next we used the math library calls to calculate the LUT.
  
 %----------------------------------------------------------------------------------------
 %	SECTION 3
@@ -113,67 +94,92 @@ Instructor: & Professor Evans % Instructor/supervisor
 
 \section{Results}
 
+\subsection{Difference Equation}
+\subsection{EDMA: Look Up Table}
+
 \textbf{Code:}
 
 \begin{verbatim}
-  f = 5;
-  t = (0:.001:1)';
-  xt = sin(2*pi*f*t);
+  /* variable initialization */
+  if(flag == 1)
+  {
+    theta1 = (2*pi*6000.0/fs);
+    theta2 = (2*pi*2000.0/fs);
 
-  %continous plot
-  figure(1);
-  plot(t,xt);
-  xlabel('time');
-  ylabel('amplitude');
-  title('sine');
+    y1[1] = sinf(theta1);
+    y2[1] = sinf(theta2);
 
-  %print values
-  n = find(t == 0.32);
-  xt(n)
+    a1 = 2*cosf(theta1);
+    a2 = 2*cosf(theta2);
+    flag = 0;
+  }
+\end{verbatim}
 
-  n = find(t == 0.64);
-  xt(n)
+\vdots
 
-  %sampled plot
-  t = downsample(t, 8);
-  xn = downsample(xt, 8);
+\begin{verbatim}
+  /* Difference Equation */
+  y1[0] = a1*y1[1] - y1[2];
+  y1[2] = y1[1];
+  y1[1] = y1[0];
 
-  hold;
-  stem(t, xn);
-
-  %save to the report directory
-  saveas(gcf, '../../report/lab_report_1/img/sine.png');
+  y2[0] = a2*y2[1] - y2[2];
+  y2[2] = y2[1];
+  y2[1] = y2[0];
 \end{verbatim}
 
 \begin{figure}[h]
   \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/sine.png}
-    \caption{5Hz Sine wave.}
+    \includegraphics[width=0.65\textwidth]{img/task1.PNG}
+    \caption{Blue: 1kHz Green: 2kHz.}
   \end{center}
 \end{figure}
 
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/task2.PNG}
+    \caption{Blue: 1kHz Green: 7kHz.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/task3.PNG}
+    \caption{Blue: 2kHz Green: 6kHz.}
+  \end{center}
+\end{figure}
 
 %----------------------------------------------------------------------------------------
 %	SECTION 4
 %----------------------------------------------------------------------------------------
 
-\section{Answers to Lab Questions}
+\section{Discussion}
+
+\subsection{Difference Equation}
+\subsection{EDMA: Look Up Table}
+
+In part 1 we had issues setting the initial conditions for the difference equation.
+We copied the code from the book, but we overlooked a scaling factor that seemed inconsequential.
+To fix the problem we ended up using a flag to initialize the variables at the start of the ISR.
+
+In part 2 we had issues initializing the LUT.
+We realized that we were typecasting in the wrong order which caused us to have significant roundoff error.
+We fixed our error by breaking up our statement into multiple statements.
+
+%----------------------------------------------------------------------------------------
+%	SECTION 5
+%----------------------------------------------------------------------------------------
+
+\section{Answers questions}
+
+\subsection{Difference Equation}
+\subsection{EDMA: Look Up Table}
 
 \begin{enumerate}
   \begin{item}
-	  Draw the block diagram for the architecture of TMS320C671x core. Explain how this architecture allows for greater functional parallelism.\\
+    Explain what happened mathematically.
 
-  \pagebreak
   \textbf{Answer:}
-  \begin{figure}[H]
-    \begin{center}
-      \includegraphics[width=0.4\textwidth]{img/core_arch.png}
-      \caption{TMS320C671x architecture \cite{Welch:2011}.}
-    \end{center}
-  \end{figure}
-
-    The core contains 8 functional units, each of these units is capable many different operations. 
-    This allows us to perform two multiplies, and up to 4 arithmetic operations in parallel.
 
   \end{item}
 
@@ -183,28 +189,6 @@ Instructor: & Professor Evans % Instructor/supervisor
   \textbf{Answer:}
     Aliasing is when the high frequency content of your analog signal appears to be at a lower frequency in discrete time.
     To prevent aliasing in our applications we will filter the input signal with a lowpass filter that has a cutoff frequency of $\frac{f_s}{2}$.
-  \end{item}
-
-  \begin{item}
-    Draw a block diagram of a generic DSP system and a talk-through system.
-
-  \textbf{Answer:}
-  \begin{figure}[H]
-    \begin{center}
-
-      \begin{subfigure}[b]{0.5\linewidth}
-        \includegraphics[width=\linewidth]{img/dsp.png}
-        \caption{Generic DSP \cite{Welch:2011}.}
-      \end{subfigure}
-
-      \begin{subfigure}[b]{0.5\linewidth}
-        \includegraphics[width=\linewidth]{img/talk_thru.png}
-        \caption{Talk Thru \cite{Welch:2011}.}
-      \end{subfigure}
-
-      \caption{DSP System.}
-    \end{center}
-  \end{figure}
   \end{item}
 
   \begin{item}
