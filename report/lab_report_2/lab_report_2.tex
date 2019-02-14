@@ -169,12 +169,18 @@ Next we used the math library calls to calculate the LUT.
 \textbf{Code:}
 
 \begin{verbatim}
-  place holder
+  Uint32 A = 32000;
+  Uint32 i;
+  float temp;
 
-  /* LUT */
-  for()
+  float f = 1000;
+  float fs = 8000;
+
+  %LUT
+  for(i = 0; i < BUFFER_COUNT; i++)
   {
-    buffer[][] = sin(w_0);
+    temp = sinf(2*M_PI*(f/fs)*i);
+    table[i] = (Uint32) A*temp;
   }
 \end{verbatim}
 
@@ -210,7 +216,7 @@ To: \verb|y1[3] = {0 sinf(w_0) 0}|
 \subsection{EDMA: Look Up Table}
 
 The LUT presented type casting challenges.
-We realized that we were typecasting in the wrong order which caused us to have significant roundoff error.
+We realized that we were typecasting before scaling which caused us to have significant roundoff error.
 We fixed our error by breaking up our statement into multiple statements.
 
 %----------------------------------------------------------------------------------------
@@ -251,6 +257,8 @@ We fixed our error by breaking up our statement into multiple statements.
     Why is scaling necessary?
 
   \textbf{Answer:}
+    Scaling is necessary to make full use of the DAC's range.
+    If the scaling was left out we would have a lot of roundoff error.
 
   \end{item}
 
