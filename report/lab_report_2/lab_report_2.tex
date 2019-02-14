@@ -48,7 +48,7 @@
 \begin{center}
 \begin{tabular}{l r}
 Date Performed: & February 4, 2019 \\ % Date the experiment was performed
-Partners: & Daniel Smith \\ % Partner names
+Partners: & Daniel Diamont \\ % Partner names
 Instructor: & Professor Evans % Instructor/supervisor
 \end{tabular}
 \end{center}
@@ -64,17 +64,29 @@ Instructor: & Professor Evans % Instructor/supervisor
 
 \section{Introduction}
 
+For this lab we focused on generating sinusoidal signals. 
+We tested the performance and resolution of three different signal generation methods, math library function calls, difference equation, and look up table (LUT).\\
+
+The math library function call uses an 11th order polynomial to aproximate the sinusoid.
+We can use the math library function with a phase increment variable to output a sinusoid in an interrupt function.
+
 \subsection{Difference Equation}
+
+\begin{equation}
+y[n] = sin(w_0)x[n-1] + 2cos(w_0)y[n-1] - y[n-2]
+\end{equation}
+
+The difference equation is derived from the z-transform of a causal single sided sinusoid.
+Since this difference equation is derived from the transfer function of a causal single sided sinusoid, then the impulse response should be $y[n] = u[n]cos[w_0n]$.
+The main advanteges of using this method are that it is not computationally intense nor does it need much memory.
+
 \subsection{EDMA: Look Up Table}
 
-For this lab we focused on generating sinusoidal signals. 
-We tested the performance and resolution of three different signal generation methods, math library function calls, resonator, and look up table (LUT).
-The math library function call uses an 11th order polynomial to aproximate the sinusoid.
-The resonator is derived from the z-transform of a single sided causal sinusoid.
-$y[n] = sin(w_0)x[n-1] + 2cos(w_0)y[n-1] - y[n-2]$ is the difference equation that represents the transfer function.
 The main benefit of having a LUT is that we can have very good resolution and not much computation.
 The only drawback is that we have to store the table.
- 
+In this part of the lab we also familiarized ourselves with the EDMA hardware.
+Using the EDMA has the benefit of freeing the CPU from having to handle memory transfers.
+
 %----------------------------------------------------------------------------------------
 %	SECTION 2
 %----------------------------------------------------------------------------------------
@@ -82,11 +94,15 @@ The only drawback is that we have to store the table.
 \section{Methods}
 
 \subsection{Difference Equation}
+
+We created global variables for the desired sinusoid frequency and the initial conditions for the difference equation.
+Each time the ISR is called we calculate the current value $y[n]$ and update the buffers $y[n-1]$ and $y[n-2]$.
+Finally we scaled the output before writing it to the codec.
+
 \subsection{EDMA: Look Up Table}
 
-For part 1 we created global variables for the angle and the initial conditions. Next we used a simplified version of the difference equation to get the next value. Next we buffered the new outputs. Finally we scaled the output before writing it to the codec.
-
-For part 2 we calculated the $gcd(f, f_s)$ to find the number of samples needed to represent the sinosoid. Next we used the math library calls to calculate the LUT.
+We calculated the $gcd(f, f_s)$ to find the number of samples needed to represent the sinosoid.
+Next we used the math library calls to calculate the LUT.
  
 %----------------------------------------------------------------------------------------
 %	SECTION 3
@@ -95,7 +111,6 @@ For part 2 we calculated the $gcd(f, f_s)$ to find the number of samples needed 
 \section{Results}
 
 \subsection{Difference Equation}
-\subsection{EDMA: Look Up Table}
 
 \textbf{Code:}
 
@@ -149,6 +164,34 @@ For part 2 we calculated the $gcd(f, f_s)$ to find the number of samples needed 
   \end{center}
 \end{figure}
 
+\subsection{EDMA: Look Up Table}
+
+\textbf{Code:}
+
+\begin{verbatim}
+  place holder
+
+  /* LUT */
+  for()
+  {
+    buffer[][] = sin(w_0);
+  }
+\end{verbatim}
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/placeholder.jpg}
+    \caption{Blue: 2kHz Green: 6kHz.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/placeholder.jpg}
+    \caption{Blue: 2kHz Green: 6kHz.}
+  \end{center}
+\end{figure}
+
 %----------------------------------------------------------------------------------------
 %	SECTION 4
 %----------------------------------------------------------------------------------------
@@ -156,13 +199,17 @@ For part 2 we calculated the $gcd(f, f_s)$ to find the number of samples needed 
 \section{Discussion}
 
 \subsection{Difference Equation}
+
+The biggest issue we had implementing our difference equation was initializing the initial conditions.
+We copied the code from the book, but we overlooked a scaling factor that seemed inconsequential.
+To fix the problem we ended up changing our code a bit to make it clear what the initial conditions actually were. \\
+
+From: \verb|y1[3] = {0 1 0}| \\
+To: \verb|y1[3] = {0 sinf(w_0) 0}|
+
 \subsection{EDMA: Look Up Table}
 
-In part 1 we had issues setting the initial conditions for the difference equation.
-We copied the code from the book, but we overlooked a scaling factor that seemed inconsequential.
-To fix the problem we ended up using a flag to initialize the variables at the start of the ISR.
-
-In part 2 we had issues initializing the LUT.
+The LUT presented type casting challenges.
 We realized that we were typecasting in the wrong order which caused us to have significant roundoff error.
 We fixed our error by breaking up our statement into multiple statements.
 
@@ -173,6 +220,16 @@ We fixed our error by breaking up our statement into multiple statements.
 \section{Answers questions}
 
 \subsection{Difference Equation}
+
+\begin{enumerate}
+  \begin{item}
+    Explain what happened mathematically.
+
+  \textbf{Answer:}
+
+  \end{item}
+\end{enumerate}
+
 \subsection{EDMA: Look Up Table}
 
 \begin{enumerate}
@@ -184,73 +241,24 @@ We fixed our error by breaking up our statement into multiple statements.
   \end{item}
 
   \begin{item}
-    What is aliasing? How do you manage aliasing in DSP applications?
+    Compare and contrast the three methods.
 
   \textbf{Answer:}
-    Aliasing is when the high frequency content of your analog signal appears to be at a lower frequency in discrete time.
-    To prevent aliasing in our applications we will filter the input signal with a lowpass filter that has a cutoff frequency of $\frac{f_s}{2}$.
+
   \end{item}
 
   \begin{item}
-    Change the code in the “ISRs.c” file to implement: talk-through with swap (left channel; right channel). You don’t have to run the project or show the result. Just write down the necessary code.
+    Why is scaling necessary?
 
   \textbf{Answer:}
-    \begin{verbatim}
-    float temp;
 
-    temp = CodecData.channel[RIGHT];
-    CodecData.channel[RIGHT] = CodecData.channel[LEFT];
-    CodecData.channel[LEFT] = temp;
-    \end{verbatim}
   \end{item}
 
   \begin{item}
-    How are 32-bit floating-point results saved on the 'C6000 processors? Explain briefly the IEEE single-precision floating-point format. When does the 'C6000 use IEEE single-precision floating-point format (i.e give an example of an operation)
+    How many cycles does a sin take?
 
   \textbf{Answer:}
-    32-bit floating point numbers are stored in IEEE single precision floating point format.
-    IEEE format reserves one bit for sign, followed by 8 exponent bits, followed by 23 mantisa bits.
-    The exponent is excess 127, and the mantisa is normalized so the leading bit is a one.
-    The 'C6000 uses single precision when only floats are invloved i.e. ($1.0F + 1.0F$).
-  \end{item}
 
-  \begin{item}
-    How does the scheduler work in DSP/BIOS?
-
-  \textbf{Answer:}
-    The scheduler periodically interrupts the current thread and determines what the highest priority thread is that is ready to execute.
-  \end{item}
-
-  \begin{item}
-    What are the different threads present in DSP/BIOS? State the names in descending order of priority and describe in brief the function of each thread.
-
-  \textbf{Answer:}
-    Hardware Interrupt, triggered by hardware, used to transfer data or to trigger software interrupts.
-    Software Interrupt, used to handle involved processing.
-    Periodic Function, similar to software interrupt, but scheduled at regular intervals.
-    Tasks, functions that handle the most complex processing.
-    Idle Functions, used for system maintenance when there are no pending threads.
-  \end{item}
-
-  \begin{item}
-    How will you determine the number of clock cycles required to execute your program?
-
-  \textbf{Answer:}
-    By changing the state of a logical signal upon entering and leaving my ISR, and monitoring that signal with an osciloscope.
-  \end{item}
-
-  \begin{item}
-    How does an external processor access the entire memory space of the DSP?
-
-  \textbf{Answer:}
-    Using the enhanced direct memory access controller.
-  \end{item}
-
-  \begin{item}
-    What is the purpose of the board support library?
-
-  \textbf{Answer:}
-    To standardize access to DSP hardware.
   \end{item}
 \end{enumerate}
 
