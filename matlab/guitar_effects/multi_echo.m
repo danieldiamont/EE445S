@@ -1,14 +1,14 @@
 %IIR feedback multi echo
 
-[guitar, fs] = audioread('./samples/sample3.wav');
+[guitar, fs] = audioread('./samples/sample6.wav');
 Ts = 1/fs;
 numSamples = length(guitar);
 tmax = Ts * numSamples;
 
 N = 512;
 B = [1];
-alpha = 0.8;
-R = 50;
+alpha = 0.87;
+R = 300;
 R = round(R);
 A = [1 zeros(1,R-2) alpha];
 
@@ -24,5 +24,5 @@ xlabel('radians'); ylabel('angle');
 y = filter(B, A, guitar);
 
 soundview(guitar,fs);
-pause(tmax + 3)
+pause(tmax + 2)
 soundview(y,fs);
