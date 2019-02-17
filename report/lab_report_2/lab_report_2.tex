@@ -164,6 +164,7 @@ Next we used the math library calls to calculate the LUT.
   \end{center}
 \end{figure}
 
+\clearpage
 \subsection{EDMA: Look Up Table}
 
 \textbf{Code:}
@@ -187,15 +188,22 @@ Next we used the math library calls to calculate the LUT.
 
 \begin{figure}[h]
   \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/placeholder.jpg}
-    \caption{Blue: 2kHz Green: 6kHz.}
+    \includegraphics[width=0.65\textwidth]{img/one_khz_wave.PNG}
+    \caption{1kHz sinusoid}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/placeholder.jpg}
-    \caption{Blue: 2kHz Green: 6kHz.}
+    \includegraphics[width=0.65\textwidth]{img/two_khz_wave.PNG}
+    \caption{2kHz sinusoid}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=1.0\textwidth]{img/clock_cycles_marker.PNG}
+    \caption{Clock cycles}
   \end{center}
 \end{figure}
 
@@ -233,6 +241,9 @@ We fixed our error by breaking up our statement into multiple statements.
     Explain what happened mathematically.
 
   \textbf{Answer:}
+    Since we output at a rate of 8 kHz, and the Nyquist theorem states that we can only accurately represent signals with frequency content below half our output rate (4 kHz).
+    This is also known as the folding frequency. Because of this, everything above 4 kHz is projected symmetrically across the folding frequency. 
+    Therefore, 7 kHz maps to 1 kHz and 6 kHz maps to 2 kHz.
 
   \end{item}
 \end{enumerate}
@@ -240,33 +251,42 @@ We fixed our error by breaking up our statement into multiple statements.
 \subsection{EDMA: Look Up Table}
 
 \begin{enumerate}
-  \begin{item}
-    Explain what happened mathematically.
-
-  \textbf{Answer:}
-
-  \end{item}
 
   \begin{item}
     Compare and contrast the three methods.
 
   \textbf{Answer:}
 
+    \begin{itemize}
+      \item Polling: The advantage of polling is that it is simple to implement. However, the processor will be busy waiting.
+      \item Interrupts: The advantages are that it frees the processor from busy waiting, and allows for easy implementation of sample by sample processing. 
+        On the other hand, they are more complex to implement than busy-wait.
+        Also, there is the added overhead of the processor contex switching between threads, and performing memory accesses to store and retrieve data.
+      \item DMA: The advantage is that there is no contex switching between threads nor memory accesses, since the processor is not involved in the acquisition of data. 
+        The disadvantage is that the configuration of the DSP board is the most complex of the three methods, since it must be configured for EDMA.
+    \end{itemize}
+
   \end{item}
 
   \begin{item}
     Why is scaling necessary?
 
-  \textbf{Answer:}
-    Scaling is necessary to make full use of the DAC's range.
-    If the scaling was left out we would have a lot of roundoff error.
+  \textbf{Answer:}\\
+    Scaling is necessary for two reasons:
+    \begin{itemize}
+      \item To make full use of the DAC's range
+      \item If the scaling was left out we would have a lot of roundoff error when the cosf floating point result gets casted to an integer.
+    \end{itemize}
+
 
   \end{item}
 
   \begin{item}
-    How many cycles does a sin take?
+    How many cycles does a sin take? How many cycles between samples?
 
   \textbf{Answer:}
+    A sin function call takes 49 cycles.
+    There are 46,875 ($\frac{375 MHz}{8 kHz}$) cycles between samples.
 
   \end{item}
 \end{enumerate}
