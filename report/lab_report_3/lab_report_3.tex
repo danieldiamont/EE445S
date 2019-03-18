@@ -49,7 +49,7 @@
 
 \begin{center}
 \begin{tabular}{l r}
-Date Performed: & February 4, 2019 \\ % Date the experiment was performed
+Date Performed: & Febraury 18, 2019 \\ % Date the experiment was performed
 Instructor: & Professor Evans % Instructor/supervisor
 \end{tabular}
 \end{center}
@@ -65,29 +65,23 @@ Instructor: & Professor Evans % Instructor/supervisor
 
 \section{Introduction}
 
-For this lab we focused on generating sinusoidal signals. 
-We tested the performance and resolution of three different signal generation methods, math library function calls, difference equation, and look up table (LUT).
-Additionally, we compared two methods of outputting values: interrupts and DMA.\\
+For this  lab we experimented with the FIR and IIR filter design process.
+We started off by using MATLAB's fdatool to experiment with different filter designs, and to gain intuition about the rules of thumb for meeting filter specifications.
+Additionally we plotted the filter magnitude and phase to verify that the specifications have been met.
+Finally we used the filter coefficients generated from MATLAB to implement IIR and FIR filters in C on our DSP board.
 
-The math library function call uses an 11th order polynomial to approximate the sinusoid.
-We can use the math library function with a phase increment variable to output a sinusoid in an interrupt function.
+\subsection{FIR}
 
-\subsection{Difference Equation}
+We experimented with both sample based processing and frame based processing.
+Within our sample based implementation we tested the difference in speed between a linear buffer and a circular buffer.
+We also compared our sample based circular buffer implementation to a frame based processing implementation and compared the tradeoffs between them.
 
-\begin{equation}
-y[n] = sin(w_0)x[n-1] + 2cos(w_0)y[n-1] - y[n-2]
-\end{equation}
+\subsection{IIR}
 
-The difference equation is derived from the z-transform of a causal single sided sinusoid.
-Since this difference equation is derived from the transfer function of a causal single sided sinusoid, then the impulse response should be $y[n] = u[n]cos[w_0n]$.
-The main advanteges of using this method are that it is not computationally intense nor does it need much memory.
+We experimented with a direct form II implementation and also a cascade of second order biquads.
+We compared the implementation complexity of both methods and the number of coefficients required for each.
+For instance biquads are reusable logic blocks, but there is lots of programming overhead setting up the biquad implementation.
 
-\subsection{EDMA: Look Up Table}
-
-The main benefit of having a LUT is that we can have very good resolution and not much computation.
-The only drawback is that we have to store the table.
-In this part of the lab we also familiarized ourselves with the EDMA hardware.
-Using the EDMA has the benefit of freeing the CPU from having to handle memory transfers.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 2
@@ -95,16 +89,22 @@ Using the EDMA has the benefit of freeing the CPU from having to handle memory t
 
 \section{Methods}
 
-\subsection{Difference Equation}
+\subsection{Linear and Circular buffering}
 
-We created global variables for the desired sinusoid frequency and the initial conditions for the difference equation.
-Each time the ISR is called we calculate the current value $y[n]$ and update the buffers $y[n-1]$ and $y[n-2]$.
-Finally we scaled the output before writing it to the codec.
+We designed a 30th order FIR filter in MATLAB and recorded its magnitude response for frequencies between 1 - 24 kHz.
+After confirming the response in MATLAB we exported the filter coefficients to a C file for implementation on DSP board.
+On the DSP board we tested the clock cycles spent with both linear and circular buffers.
 
-\subsection{EDMA: Look Up Table}
+\subsection{Frame based processing}
 
-We calculated the $gcd(f, f_s)$ to find the number of samples needed to represent the sinosoid.
-Next we used the math library calls to calculate the LUT.
+Using the same FIR filter coefficients we experimented with a frame based approach and compared the results to the circular buffer sample based implementation.
+We also experimented with the compiler optomizations available in CCS for a convolution method written in C compared to one in assebly.
+
+\subsection{IIR filtering}
+
+We designed a 6th order IIR filter in MATLAB and recorded its magnitude response for frequencies between 1 - 24 kHz.
+After confirming the response in MATLAB we exported the filter coefficients to a C file for implementation on DSP board.
+We compared the performance of the direct form implementation with a second order biquad cascade.
  
 %----------------------------------------------------------------------------------------
 %	SECTION 3
@@ -112,102 +112,374 @@ Next we used the math library calls to calculate the LUT.
 
 \section{Results}
 
-\subsection{Difference Equation}
+\subsection{Linear and Circular buffering}
 
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/fir_mag.png}
+    \caption{FIR magnitude response.}
+  \end{center}
+\end{figure}
+
+\pagebreak
+\textbf{Table:}
+
+\begin{center}
+\begin{tabular}{c|c|c|c}
+freq (Hz)	& MATLAB dB	& C dB \\ \hline
+1	   & -26.4764686348	 & -15.289 \\ \hline
+2	   & -19.6317280623	 & -13.639 \\ \hline
+3	   & -17.6768240012	 & -13.152 \\ \hline
+4	   & -17.123864155	 & -12.252 \\ \hline
+5	   & -1.3024968679	 & 0.172   \\ \hline
+6	   & 1.111588031	   & 2.607   \\ \hline
+7	   & -0.4856202938	 & 0.828   \\ \hline
+8	   & -1.2464254947	 & 0.257   \\ \hline
+9	   & -0.0834986716	 & 1.364   \\ \hline
+10	 & 1.016410665	   & 2.144   \\ \hline
+11	 & 0.7589322154	   & 2.076   \\ \hline
+12	 & -0.9311437073	 & 0.668   \\ \hline
+13	 & -0.7304622226	 & 0.588   \\ \hline
+14	 & 1.0955609737	   & 2.3454  \\ \hline
+15	 & -1.3024968679	 & 0.257   \\ \hline
+16	 & -17.123864155	 & -11.768 \\ \hline
+17	 & -17.4842248929	 & -11.835 \\ \hline
+18	 & -20.8880803374	 & -14.067 \\ \hline
+19	 & -22.0160480332	 & -14.609 \\ \hline
+20	 & -17.8808698809	 & -12.69  \\ \hline
+21	 & -28.5482145367	 & -17.993 \\ \hline
+22	 & -17.2303232362	 & -15.494 \\ \hline
+23	 & -39.7758165405	 & -16.363 \\ \hline
+24	 & -17.123864155	 & -17.458 \\ \hline
+\end{tabular}
+\end{center}
+
+\pagebreak
 \textbf{Code:}
 
 \begin{verbatim}
-  /* variable initialization */
-  if(flag == 1)
-  {
-    theta1 = (2*pi*6000.0/fs);
-    theta2 = (2*pi*2000.0/fs);
-
-    y1[1] = sinf(theta1);
-    y2[1] = sinf(theta2);
-
-    a1 = 2*cosf(theta1);
-    a2 = 2*cosf(theta2);
-    flag = 0;
-  }
+/*********Coefficients*************/
+float B[N+1] = {
+-0.020403335532,	/* h[0] */
+-0.034752540459,	/* h[1] */
+0.011675748908,	/* h[2] */
+-0.081290790410,	/* h[3] */
+-0.020874660735,	/* h[4] */
+0.052412925124,	/* h[5] */
+0.022816502846,	/* h[6] */
+0.018922432476,	/* h[7] */
+0.074229254675,	/* h[8] */
+-0.003637178873,	/* h[9] */
+-0.052161838503,	/* h[10] */
+0.022826239218,	/* h[11] */
+-0.123591009216,	/* h[12] */
+-0.273422708726,	/* h[13] */
+0.108309337556,	/* h[14] */
+0.458629527602,	/* h[15] */
+0.108309337556,	/* h[16] */
+-0.273422708726,	/* h[17] */
+-0.123591009216,	/* h[18] */
+0.022826239218,	/* h[19] */
+-0.052161838503,	/* h[20] */
+-0.003637178873,	/* h[21] */
+0.074229254675,	/* h[22] */
+0.018922432476,	/* h[23] */
+0.022816502846,	/* h[24] */
+0.052412925124,	/* h[25] */
+-0.020874660735,	/* h[26] */
+-0.081290790410,	/* h[27] */
+0.011675748908,	/* h[28] */
+-0.034752540459,	/* h[29] */
+-0.020403335532,	/* h[30] */
+};
 \end{verbatim}
-
-\vdots
 
 \begin{verbatim}
-  /* Difference Equation */
-  y1[0] = a1*y1[1] - y1[2];
-  y1[2] = y1[1];
-  y1[1] = y1[0];
+/*********Linear buffer************/
+xLeft[0]  = CodecDataIn.Channel[LEFT];	// current LEFT input value
+yLeft  = 0;				// initialize the LEFT output value
 
-  y2[0] = a2*y2[1] - y2[2];
-  y2[2] = y2[1];
-  y2[1] = y2[0];
+for (i = 0; i <= N; i++)
+{
+  yLeft  += xLeft[ i]*B[i];	// perform the LEFT dot-product
+}
+
+for (i = N; i > 0; i--)
+{
+  xLeft[i] = xLeft[i-1];        // setup xLeft[] for the next input
+}
+
+CodecDataOut.Channel[LEFT]  = yLeft;	// setup the LEFT value	
+\end{verbatim}
+
+\begin{verbatim}
+/*********Circular buffer**********/
+*pLeft  = CodecDataIn.Channel[LEFT];	// store LEFT input value
+
+output = 0;								// set up for LEFT channel
+p = pLeft;								// save current sample pointer
+
+if(++pLeft > &xLeft[N])		// update pointer, wrap if necessary
+  pLeft = xLeft;					// and store
+
+for (i = 0; i <= N; i++)
+{
+  output += *p-- * B[i];  		// multiply and accumulate
+
+  if(p < &xLeft[0])       		// check for pointer wrap around
+    p = &xLeft[N];
+}
+
+CodecDataOut.Channel[LEFT]  = output; // store filtered value
 \end{verbatim}
 
 \begin{figure}[h]
   \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/task1.PNG}
-    \caption{Blue: 1kHz Green: 2kHz.}
+    \includegraphics[width=0.4\textwidth]{img/linear_buffer.png}
+    \caption{Linear buffer clock cycles.}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/task2.PNG}
-    \caption{Blue: 1kHz Green: 7kHz.}
+    \includegraphics[width=0.4\textwidth]{img/circular_buffer.png}
+    \caption{Circular buffer clock cycles.}
+  \end{center}
+\end{figure}
+
+\subsection{Frame based processing}
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/fir_mag.png}
+    \caption{FIR magnitude response.}
+  \end{center}
+\end{figure}
+
+\begin{verbatim}
+/*********Coefficients*************/
+float B[N+1] = {
+-0.020403335532,	/* h[0] */
+-0.034752540459,	/* h[1] */
+0.011675748908,	/* h[2] */
+-0.081290790410,	/* h[3] */
+-0.020874660735,	/* h[4] */
+0.052412925124,	/* h[5] */
+0.022816502846,	/* h[6] */
+0.018922432476,	/* h[7] */
+0.074229254675,	/* h[8] */
+-0.003637178873,	/* h[9] */
+-0.052161838503,	/* h[10] */
+0.022826239218,	/* h[11] */
+-0.123591009216,	/* h[12] */
+-0.273422708726,	/* h[13] */
+0.108309337556,	/* h[14] */
+0.458629527602,	/* h[15] */
+0.108309337556,	/* h[16] */
+-0.273422708726,	/* h[17] */
+-0.123591009216,	/* h[18] */
+0.022826239218,	/* h[19] */
+-0.052161838503,	/* h[20] */
+-0.003637178873,	/* h[21] */
+0.074229254675,	/* h[22] */
+0.018922432476,	/* h[23] */
+0.022816502846,	/* h[24] */
+0.052412925124,	/* h[25] */
+-0.020874660735,	/* h[26] */
+-0.081290790410,	/* h[27] */
+0.011675748908,	/* h[28] */
+-0.034752540459,	/* h[29] */
+-0.020403335532,	/* h[30] */
+};
+\end{verbatim}
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{img/frame_clock.png}
+    \caption{Clock cycles to process one frame.}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/task3.PNG}
-    \caption{Blue: 2kHz Green: 6kHz.}
+    \includegraphics[width=0.4\textwidth]{img/circular_buffer.png}
+    \caption{Clock cycles to process one sample.}
+  \end{center}
+\end{figure}
+
+\pagebreak
+\textbf{Compiler Optimizations}
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{img/c_opt_0.png}
+    \caption{C code optimization level 0.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{img/c_opt_1.png}
+    \caption{C code optimization level 1.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{img/c_opt_2.png}
+    \caption{C code optimization level 2.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{img/c_opt_3.png}
+    \caption{C code optimization level 3.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{img/asm_opt_0.png}
+    \caption{ASM code optimization level 0.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{img/asm_opt_1.png}
+    \caption{ASM code optimization level 1.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{img/asm_opt_2.png}
+    \caption{ASM code optimization level 2.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{img/asm_opt_3.png}
+    \caption{ASM code optimization level 3.}
   \end{center}
 \end{figure}
 
 \clearpage
-\subsection{EDMA: Look Up Table}
+\subsection{IIR filtering}
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/iir_mag.png}
+    \caption{IIR magnitude response.}
+  \end{center}
+\end{figure}
+
+\textbf{Table:}
+\begin{center}
+\begin{tabular}{c|c|c|c}
+freq (Hz)	& MATLAB dB	& C dB	& SOS dB \\ \hline
+1  & 	-49.336911533	           &   -21.6164638623	   & -23.8559390512 \\ \hline
+2  & 	-30.4835221116	         &   -18.9224923843	   & -22.8898454597 \\ \hline
+3  & 	-18.5780755991	         &   -21.6164638623	   & -16.2092403443 \\ \hline
+4  & 	-9.4231800523	           &   -16.4237176522	   & -8.3784900031  \\ \hline
+5  & 	-3.0102999566	           &   -8.1242506928	   & -2.3578900898  \\ \hline
+6  & 	-0.4907931843	           &   -2.1875730714	   & 0              \\ \hline
+7  & 	-0.0431819157	           &   0	               & 0              \\ \hline
+8  & 	-0.0013881395	           &   0.0008193849	     & 0              \\ \hline
+9  & 	-0.000001107	           &   0.0016386925	     & 0              \\ \hline
+10 &	-2.45915822097029E-06	   &   0.0024579228	     & 0              \\ \hline
+11 &	-0.0012585765	           &   0.0032770759	     & 0              \\ \hline
+12 &	-0.0255740552	           &   0.0040961518	     & 0              \\ \hline
+13 &	-0.1988119832	           &   0.0049151504	     & 0              \\ \hline
+14 &	-0.9408492775	           &   -0.5061173053	   & -0.5061173053  \\ \hline
+15 &	-3.0102999566	           &   -2.4443175655	   & -2.7088828801  \\ \hline
+16 &	-6.7158691567	           &   -4.9430922976	   & -6.1860504326  \\ \hline
+17 &	-11.500586955	           &   -9.9793317575	   & -10.1886404311 \\ \hline
+18 &	-16.8767672084	         &   -14.144850606	   & -15.595863949  \\ \hline
+19 &	-22.8006774261	         &   -16.4237176522	   & -18.9224923843 \\ \hline
+20 &	-29.5500422777	         &   -19.5217568519	   & -20.5061173053 \\ \hline
+21 &	-37.7484943246	         &   -20.5061173053	   & -22.0205315841 \\ \hline
+22 &	-48.8004344666	         &   -20.5061173053	   & -22.8898454597 \\ \hline
+23 &	-67.1478923263	         &   -20.5061173053	   & -23.3594673767 \\ \hline
+24 &	-77.232927344	           &   -20.5061173053	   & -23.8559390512 \\ \hline
+\end{tabular}
+\end{center}
+
+\pagebreak
 
 \textbf{Code:}
 
 \begin{verbatim}
-  %createtable
-  Uint32 A = 32000;
-  Uint32 i;
-  float temp;
+/*********Coefficients*************/
+float B[N + 1] = {
+    0.108499,	/* B[0] */
+           0,	/* B[1] */
+   -0.325498,	/* B[2] */
+           0,	/* B[3] */
+    0.325498,	/* B[4] */
+           0,	/* B[5] */
+   -0.108499,	/* B[6] */
+};
 
-  float f = 1000;
-  float fs = 8000;
-
-  %LUT
-  for(i = 0; i < BUFFER_COUNT; i++)
-  {
-    temp = sinf(2*M_PI*(f/fs)*i);
-    table[i] = (Uint32) A*temp;
-  }
+float A[N + 1] = {
+           1,	/* A[0] */
+    -1.13553,	/* A[1] */
+    0.944316,	/* A[2] */
+   -0.637821,	/* A[3] */
+    0.544417,	/* A[4] */
+   -0.173657,	/* A[5] */
+   0.0459008,	/* A[6] */
+};
 \end{verbatim}
 
-\begin{figure}[h]
-  \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/one_khz_wave.PNG}
-    \caption{1kHz sinusoid}
-  \end{center}
-\end{figure}
+\begin{verbatim}
+/*********df_one*******************/
+float sum = 0;
+int i;
 
-\begin{figure}[h]
-  \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/two_khz_wave.PNG}
-    \caption{2kHz sinusoid}
-  \end{center}
-\end{figure}
+//dot product for numerator
+for(i = 0; i < N + 1; i++)
+{
+		sum += B[i]*x[i];
+}
 
-\begin{figure}[h]
-  \begin{center}
-    \includegraphics[width=1.0\textwidth]{img/clock_cycles_marker.PNG}
-    \caption{Clock cycles}
-  \end{center}
-\end{figure}
+//dot product for denominator
+for(i = 1; i < N + 1; i++)
+{
+		sum -= A[i]*y[i];
+}
+
+y[0] = A[0]*sum;
+
+//setup for next iteration
+for(i = N; 0 < i; i--)
+{
+		x[i] = x[i - 1];
+		y[i] = y[i - 1];
+}
+\end{verbatim}
+
+\begin{verbatim}
+/************SOS*******************/
+float biquad(int index, float value)
+{
+	x[index][0] = value;
+	float ret_val = SOS[index][0]*x[index][0] + SOS[index][1]*x[index][1] + SOS[index][2]*x[index][2] +
+									SOS[index][3]*y[index][1] + SOS[index][4]*y[index][2];
+
+	y[index][0] = ret_val;
+
+	x[index][2] = x[index][1];
+	x[index][1] = x[index][0];
+
+	y[index][2] = y[index][1];
+	y[index][1] = y[index][0];
+
+	return ret_val;
+}
+\end{verbatim}
 
 %----------------------------------------------------------------------------------------
 %	SECTION 4
@@ -215,82 +487,106 @@ Next we used the math library calls to calculate the LUT.
 
 \section{Discussion}
 
-\subsection{Difference Equation}
+\subsection{Linear and Circular buffering}
 
-The biggest issue we had implementing our difference equation was initializing the initial conditions.
-We copied the code from the book, but we overlooked a scaling factor that seemed inconsequential.
-To fix the problem we ended up changing our code a bit to make it clear what the initial conditions actually were. \\
+We learned that the MATLAB fda tool is very good for quickly designing filters.
+After examining the magnitude plot in MATLAB we got a good idea about what to expect from the real time implementation.
 
-From: \verb|y1[3] = {0 1 0}| \\
-To: \verb|y1[3] = {0 sinf(w_0) 0}|
+\subsection{Frame based processing}
 
-\subsection{EDMA: Look Up Table}
+One big take away was that the compiler is a way better optimizer than we are.
+Also we realized that some compiler optimizations lead to very hard to understand assembly code.
 
-The LUT presented type casting challenges.
-We realized that we were typecasting before scaling which caused us to have significant roundoff error.
-We fixed our error by breaking up our statement into multiple statements.
+\subsection{IIR filtering}
+
+It was a surprise that the IIR filter achieved such great performance with far less filter coefficients.
+Also it was interesting to see the effect of using incorrect gains in the cascuade of biquads.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 5
 %----------------------------------------------------------------------------------------
 
-\section{Answers questions}
-
-\subsection{Difference Equation}
+\clearpage
+\pagebreak
+\section{Answers to questions}
 
 \begin{enumerate}
   \begin{item}
-    Explain what happened mathematically.
+    Number of taps before you run out of time for FIR filtering.
 
   \textbf{Answer:}
-    Since we output at a rate of 8 kHz, and the Nyquist theorem states that we can only accurately represent signals with frequency content below half our output rate (4 kHz).
-    This is also known as the folding frequency. Because of this, everything above 4 kHz is projected symmetrically across the folding frequency. 
-    Therefore, 7 kHz maps to 1 kHz and 6 kHz maps to 2 kHz.
+    For an arbitrary processor using a circular buffer to implement an FIR filter, where $m$ is the time it takes for a multiply to complete and $a$ is the time it takes for an addition to complete.
+    We would want our processing to take less than our sampling period $T_s$.
+    So for an FIR filter with $N$ coefficients we  would have $N$ multiply and $N - 1$ add opperations.
+
+    \begin{equation}
+      T_s > mN + a(N - 1)
+    \end{equation}
+
+    Solving for $N$ we arrive at this constraint for the maximum number of taps.
+
+    \begin{equation}
+      \frac{T_s + a}{m + a} > N
+    \end{equation}
+  \end{item}
+
+  \begin{item}
+    Why use circular buffers?
+
+  \textbf{Answer:}
+    Using a circular buffer eliminates the time needed to shift values using a linear buffer implementation, which would scale shifts linearly.
 
   \end{item}
-\end{enumerate}
-
-\subsection{EDMA: Look Up Table}
-
-\begin{enumerate}
 
   \begin{item}
-    Compare and contrast the three methods.
+    What happens if you do not multiply the scale factor in an IIR filter implementation using a cascade of second-order sections (SOS)?
+
+  \textbf{Answer:}
+    If we do not multiply by a scaling factor our system may be unstable.
+    When we design a transfer function we use a set of specifications to guide our choices of poles and zeros.
+    From this set of poles and zeros we arrive at a single section implementation.
+    To create a more practical implementation we instead break our single section into many second order sections.
+    As a result of factoring our large polynomial into many second order polynomials we get a set of scaling factors between each section.
+    By ignoring these scaling factors, we would essentially change the location of the poles and zeros, and by extent the response of the entire filter.
+  \end{item}
+
+  \begin{item}
+    Advantages and disadvantages of FIR vs. IIR filters. 
 
   \textbf{Answer:}
 
+    \textbf{FIR}
+
+    \textit{Pros:}
+
     \begin{itemize}
-      \item Polling: The advantage of polling is that it is simple to implement. However, the processor will be busy waiting.
-      \item Interrupts: The advantages are that it frees the processor from busy waiting, and allows for easy implementation of sample by sample processing. 
-        On the other hand, they are more complex to implement than busy-wait.
-        Also, there is the added overhead of the processor contex switching between threads, and performing memory accesses to store and retrieve data.
-      \item DMA: The advantage is that there is no contex switching between threads nor memory accesses, since the processor is not involved in the acquisition of data. 
-        The disadvantage is that the configuration of the DSP board is the most complex of the three methods, since it must be configured for EDMA.
+      \item Linear phase
+      \item BIBO stability
+    \end{itemize}
+
+    \textit{Cons:}
+
+    \begin{itemize}
+      \item Large number of coefficients
+    \end{itemize}
+
+    \textbf{IIR}
+
+    \textit{Pros:}
+
+    \begin{itemize}
+      \item Low number of Coefficients
+    \end{itemize}
+
+    \textit{Cons:}
+
+    \begin{itemize}
+      \item May become unstable
+      \item non linear phase
     \end{itemize}
 
   \end{item}
 
-  \begin{item}
-    Why is scaling necessary?
-
-  \textbf{Answer:}\\
-    Scaling is necessary for two reasons:
-    \begin{itemize}
-      \item To make full use of the DAC's range
-      \item If the scaling was left out we would have a lot of roundoff error when the cosf floating point result gets casted to an integer.
-    \end{itemize}
-
-
-  \end{item}
-
-  \begin{item}
-    How many cycles does a sin take? How many cycles between samples?
-
-  \textbf{Answer:}
-    A sin function call takes 49 cycles.
-    There are 46,875 ($\frac{375 MHz}{8 kHz}$) cycles between samples.
-
-  \end{item}
 \end{enumerate}
 
 %----------------------------------------------------------------------------------------
