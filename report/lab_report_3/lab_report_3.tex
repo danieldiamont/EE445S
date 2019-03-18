@@ -462,12 +462,27 @@ for(i = N; 0 < i; i--)
 \end{verbatim}
 
 \begin{verbatim}
+/************SOS Coeff***************/
+float SOS[SOS_SIZE][5] = {
+{           1,            0,           -1,      1.28028,    -0.657254}, /* SOS[0] */
+{           1,            0,           -1,    -0.513935,    -0.530466}, /* SOS[1] */
+{           1,            0,           -1,     0.369184,    -0.131652}, /* SOS[2] */
+};
+
+float G[SOS_SIZE + 1] = {    0.4999,
+                             0.4999,
+                             0.4342,
+                             1.0000};
+\end{verbatim}
+
+\begin{verbatim}
 /************SOS*******************/
 float biquad(int index, float value)
 {
 	x[index][0] = value;
-	float ret_val = SOS[index][0]*x[index][0] + SOS[index][1]*x[index][1] + SOS[index][2]*x[index][2] +
-									SOS[index][3]*y[index][1] + SOS[index][4]*y[index][2];
+	float ret_val = SOS[index][0]*x[index][0] + SOS[index][1]*x[index][1] + 
+  SOS[index][2]*x[index][2] +
+	SOS[index][3]*y[index][1] + SOS[index][4]*y[index][2];
 
 	y[index][0] = ret_val;
 
@@ -506,8 +521,6 @@ Also it was interesting to see the effect of using incorrect gains in the cascua
 %	SECTION 5
 %----------------------------------------------------------------------------------------
 
-\clearpage
-\pagebreak
 \section{Answers to questions}
 
 \begin{enumerate}
