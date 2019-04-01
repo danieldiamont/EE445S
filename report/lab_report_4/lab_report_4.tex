@@ -77,11 +77,11 @@ the bit.
 
 \section{Methods}
 
-We started off by creating a [5, 2] s SSRG to implement the sequence. We tested
+We started off by creating a $[5, 2]_s$ SSRG to implement the sequence. We tested
 the sequence by profiling the output with an oscilloscope and making sure that
 it was periodic. Next we used the m-sequence to scramble a transmit bit, and
 subsequently descramble the bit at the reciever. This was achieved by starting
-the SSRG of the transmitter and reciever in the same initial state, and xoring
+the SSRG of the transmitter and receiver in the same initial state, and XORing
 the input bit with the resulting sequence.
  
 %----------------------------------------------------------------------------------------
@@ -92,8 +92,6 @@ the input bit with the resulting sequence.
 
 \subsection{DSK Implementation of PN Sequence Generation}
 
-TODO 
-
 % PN Waveform Image
 \begin{figure}[h]
   \begin{center}
@@ -102,18 +100,11 @@ TODO
   \end{center}
 \end{figure}
 
-% PLACE HOLDER IMAGE FIGURE 1 SSRG [5,2]s.
-%\begin{figure}[h]
-%  \begin{center}
-%    \includegraphics[width=0.65\textwidth]{img/placeholder.jpg}
-%    \caption{SSRG $[5,2]_s$.}
-%  \end{center}
-%\end{figure}
-
 % count state table
+%\caption{Table 1: State Machine for PN Sequence Generation}
 \begin{center}
 \begin{tabular}{c|c}
-count & state \\ \hline
+Count & State \\ \hline
 [0] & 10000 \\ \hline
 [1] & 01000 \\ \hline
 [2] & 10100 \\ \hline
@@ -140,7 +131,7 @@ count & state \\ \hline
 \end{center}
 \begin{center}
 \begin{tabular}{c|c}
-count & state \\ \hline
+Count & State \\ \hline
 [22] & 01100 \\ \hline
 [23] & 10110 \\ \hline
 [24] & 01011 \\ \hline
@@ -179,7 +170,7 @@ count & state \\ \hline
 \end{center}
 \begin{center}
 \begin{tabular}{c|c}
-count & state \\ \hline
+Count & State \\ \hline
 [56] & 00101 \\ \hline
 [57] & 10010 \\ \hline
 [58] & 01001 \\ \hline
@@ -231,20 +222,40 @@ count & state \\ \hline
 % PN sequence profiling
 \begin{figure}[h]
   \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/profile_PN_generation.png}
-    \caption{PN Sequence?.}
+    \includegraphics[width=0.80\textwidth]{img/profile_PN_generation.png}
+    \caption{PN Sequence Generation Profiling.}
   \end{center}
 \end{figure}
 
+The PN Generation took 70 cycles.
+\newline
 
 % PN generation C code 
 \textbf{PN Generation C Code:}
 
 \begin{verbatim}
+#define LEFT  0
+#define RIGHT 1
+#define A       32000
+#define TAPS    5
+
+int SSRG_state = 1;
+
+int SSRG_update(int * state) {
+    // compute feedback
+    int fb5 = (*state)&1;
+    int fb = ((*state >> 3)&1) ^ fb5;
+
+    // shift state register
+    *state = *state >> 1;
+
+    // add feedback
+    *state = (fb << 4) | *state;
+    return fb5;
+}
 \end{verbatim}
 
 \subsection{DSK Implementation of Data Scrambler and Descrambler}
-TODO
 
 % count scrambler descrambler
 \begin{center}
@@ -373,20 +384,84 @@ Count & Scrambler Output & Descrambler Output \\ \hline
   \end{center}
 \end{figure}
 
+The Scrambler took () cycles.
+The Descrambler took () cycles.
+\newline
 
 % scrambler and descrambler code 
 \textbf{Scrambler and Descrambler C Code:}
 
 \begin{verbatim}
+
+#define LEFT  0
+#define RIGHT 1
+#define A       32000
+#define TAPS    5
+
+int DS_state = 1;
+int DD_state = 1;
+
+int scramble(int * state, int in) {
+    // compute feedback
+    int fb5 = (*state)&1;
+    int fb = ((*state >> 3)&1) ^ fb5;
+
+    // shift state register
+    *state = *state >> 1;
+
+    // add feedback
+    *state = (fb << 4) | *state;
+    return fb5^in;
+}
+
+int descramble(int * state, int in) {
+    // compute feedback
+    int fb5 = (*state)&1;
+    int fb = ((*state >> 3)&1) ^ fb5;
+
+    // shift state register
+    *state = *state >> 1;
+
+    // add feedback
+    *state = (fb << 4) | *state;
+    return fb5^in;
+}
+
 \end{verbatim}
 
 \subsection{Autocorrelation}
-TODO
 
 % autocorelation code 
 \textbf{Autocorrelation Code:}
 
 \begin{verbatim}
+pn = [1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0];
+sc = [0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1];
+
+pn(pn == 0) = -1;
+sc(sc == 0) = -1;
+
+tmp1 = [pn pn];
+tmp2 = [sc sc];
+
+s1 = fft(tmp1);
+pn_corr = ifft(s1.*conj(s1))/length(tmp1);
+
+s2 = fft(tmp2);
+sc_corr = ifft(s2.*conj(s2)/length(tmp2));
+
+plot(pn_corr);
+title('PN circular autocorrelation');
+xlabel('chip offset');
+ylabel('R');
+saveas(gcf, '../../report/lab_report_4/img/pn_corr.png');
+
+figure;
+plot(sc_corr);
+title('scrambled circular autocorrelation');
+xlabel('chip offset');
+ylabel('R');
+saveas(gcf, '../../report/lab_report_4/img/sc_corr.png');
 \end{verbatim}
 
 % IMAGE PN Circular autocorrelation
@@ -409,24 +484,24 @@ TODO
 %	SECTION 4
 %----------------------------------------------------------------------------------------
 
-\section{Discussion}
+%\section{Discussion}
 
-\subsection{TODO}
+%\subsection{TODO}
 
 
 %----------------------------------------------------------------------------------------
 %	SECTION 5
 %----------------------------------------------------------------------------------------
 
-\section{Answers to questions}
+%\section{Answers to questions}
 
-\begin{enumerate}
-  \begin{item}
-    Number of taps before you run out of time for FIR filtering.
+%\begin{enumerate}
+%  \begin{item}
+%    Number of taps before you run out of time for FIR filtering.
+%
+%  \textbf{Answer:}
 
-  \textbf{Answer:}
-
-\end{enumerate}
+%\end{enumerate}
 
 %----------------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
