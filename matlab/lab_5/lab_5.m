@@ -48,3 +48,21 @@ xlabel('Samples');
 hold on
 plot(upsample_bpsk);
 hold off
+
+%% eye diagram
+eyediagram(upsample_conv_bpsk, 40, 2);
+title('Eye Diagram for Transmission Output (Beta = 1)');
+
+%% eye diagram beta = .125
+eyediagram(upsample_conv_bpsk_1, 40, 2);
+title('Eye Diagram for Transmission Output (Beta = 0.125)');
+
+%% magnitude responses
+freqz(h);
+title('Magnitude Response Raised Cosine (beta = 1)');
+
+%% magnitude respone beta = 0.125
+freqz(h_1);
+title('Magnitude Response Raised Cosine (beta = 0.125)');
+
+%bode(h);
