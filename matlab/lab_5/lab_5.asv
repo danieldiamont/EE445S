@@ -1,0 +1,17 @@
+% generate 200 random bits using round and rand
+bits = round(rand(1,200));
+
+% map to bpsk amplitudes
+bpsk = bits;
+bpsk(bpsk == 0) = -1;
+
+%% simulation of block diagram
+sps = 20; % 20 samples per symbol
+beta = 1;
+span = 8;
+h = rcosdesign(beta, span, sps);
+fvtool(h, 'Analysis', 'impulse');
+
+upsample_bpsk = upsample(bpsk,20);
+
+upsample_conv_bpsk = conv(
