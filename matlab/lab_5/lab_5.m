@@ -66,3 +66,12 @@ freqz(h_1);
 title('Magnitude Response Raised Cosine (beta = 0.125)');
 
 %bode(h);
+
+%% export coefficients
+addpath('C:\Users\daniel\workspace_DSP\code\chapter_03\matlab\matlabExport');
+
+FIR_dump2c('coeff','B',h,length(h));
+
+%% export beta 125
+FIR_dump2c('coeff','C',h_1,length(h_1));
+
