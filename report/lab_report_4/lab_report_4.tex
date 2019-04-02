@@ -379,13 +379,14 @@ Count & Scrambler Output & Descrambler Output \\ \hline
 % Scrambler and Descrambler profiling
 \begin{figure}[h]
   \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/placeholder.jpg}
-    \caption{Scrambler and Descrambler Profiling}
+    \includegraphics[width=0.65\textwidth]{img/scrambler_profile.png}
+    \caption{Scrambler and Descrambler Profiling.}
   \end{center}
 \end{figure}
 
-The Scrambler took () cycles.
-The Descrambler took () cycles.
+The Scrambler took 74 cycles.
+The Descrambler is implemented the same way as the scrambler, that is,
+it takes 74 cycles as well.
 \newline
 
 % scrambler and descrambler code 
@@ -435,8 +436,10 @@ int descramble(int * state, int in) {
 \textbf{Autocorrelation Code:}
 
 \begin{verbatim}
-pn = [1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0];
-sc = [0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1];
+pn = [1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 
+1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0];
+sc = [0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1,
+0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1];
 
 pn(pn == 0) = -1;
 sc(sc == 0) = -1;
@@ -465,6 +468,8 @@ saveas(gcf, '../../report/lab_report_4/img/sc_corr.png');
 \end{verbatim}
 
 % IMAGE PN Circular autocorrelation
+On the next page, we can see the peak occurs at $2^r - 1, $ where $r = 5$ in this case.
+\break
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/pn_corr.png}
