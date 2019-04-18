@@ -65,22 +65,15 @@ Instructor: & Professor Evans % Instructor/supervisor
 
 \section{Introduction}
 
-For this  lab we experimented with the FIR and IIR filter design process.
-We started off by using MATLAB's fdatool to experiment with different filter designs, and to gain intuition about the rules of thumb for meeting filter specifications.
-Additionally we plotted the filter magnitude and phase to verify that the specifications have been met.
-Finally we used the filter coefficients generated from MATLAB to implement IIR and FIR filters in C on our DSP board.
+In this lab, we investigated aspects of pulse amplitude modulation (PAM) for baseband transmission and reception. The lab was split up into the following three parts: pulse shaping, symbol clock recovery, and demodulation.
 
 \subsection{Pulse Shaping}
+Pulse shaping refers in this case to applying a band-limited pulse to an impulse train of symbol amplitudes before sending the signal to the DAC. In this lab, we explored the effects of using differently parametrized raised cosine pulses on the time domain representation of the signal, as well as the effects on quantization.
 
-We experimented with both sample based processing and frame based processing.
-Within our sample based implementation we tested the difference in speed between a linear buffer and a circular buffer.
-We also compared our sample based circular buffer implementation to a frame based processing implementation and compared the tradeoffs between them.
+Specifically, since the raised cosine pulse shape with $ \beta = 1 $ has most of its power in the time domain inside of of the symbol period, then it follows that using the raised cosine to shape successive symbol amplitudes causes less inter symbol interference (ISI). In contrast, using a raised cosine with $ \beta = 0.125, $ which has more power leakage across time with respect to the previous example, then it follows that there will be more inter symbol interference. We can see the difference in ISI by comparing the eye diagrams in Figure 3 and Figure 4. It is clear that we would be able correctly quantize with a higher probability data using a raised cosine with $ \beta = 1 $ as opposed to data using raised cosine with $ \beta = 0.125. $
 
 \subsection{SCR}
 
-We experimented with a direct form II implementation and also a cascade of second order biquads.
-We compared the implementation complexity of both methods and the number of coefficients required for each.
-For instance biquads are reusable logic blocks, but there is lots of programming overhead setting up the biquad implementation.
 
 \subsection{Demodulation}
 
@@ -91,23 +84,7 @@ For instance biquads are reusable logic blocks, but there is lots of programming
 
 \section{Methods}
 
-\subsection{Linear and Circular buffering}
 
-We designed a 30th order FIR filter in MATLAB and recorded its magnitude response for frequencies between 1 - 24 kHz.
-After confirming the response in MATLAB we exported the filter coefficients to a C file for implementation on DSP board.
-On the DSP board we tested the clock cycles spent with both linear and circular buffers.
-
-\subsection{Frame based processing}
-
-Using the same FIR filter coefficients we experimented with a frame based approach and compared the results to the circular buffer sample based implementation.
-We also experimented with the compiler optomizations available in CCS for a convolution method written in C compared to one in assebly.
-
-\subsection{IIR filtering}
-
-We designed a 6th order IIR filter in MATLAB and recorded its magnitude response for frequencies between 1 - 24 kHz.
-After confirming the response in MATLAB we exported the filter coefficients to a C file for implementation on DSP board.
-We compared the performance of the direct form implementation with a second order biquad cascade.
- 
 %----------------------------------------------------------------------------------------
 %	SECTION 3
 %----------------------------------------------------------------------------------------
@@ -378,20 +355,6 @@ b2	&  0				\\ \hline
 
 \section{Discussion}
 
-\subsection{Linear and Circular buffering}
-
-We learned that the MATLAB fda tool is very good for quickly designing filters.
-After examining the magnitude plot in MATLAB we got a good idea about what to expect from the real time implementation.
-
-\subsection{Frame based processing}
-
-One big take away was that the compiler is a way better optimizer than we are.
-Also we realized that some compiler optimizations lead to very hard to understand assembly code.
-
-\subsection{IIR filtering}
-
-It was a surprise that the IIR filter achieved such great performance with far less filter coefficients.
-Also it was interesting to see the effect of using incorrect gains in the cascuade of biquads.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 5
