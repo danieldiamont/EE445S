@@ -68,12 +68,13 @@ interrupt void Codec_ISR()
 
 	// I added my IM BPSK routine here
     if (counter == 0) {
-        /*
 		symbol = SSRG_update(&SSRG_state); // pseudo random m-sequence
-		*/
+        x[0] = data[symbol]; // read the table
+
+        /* dotting sequence
         symbol = symbol ^ 1;
 		x[0] = data[symbol]; // read the table
-
+		*/
 	}
 
     // perform impulse modulation based on the FIR filter, B[N] 
