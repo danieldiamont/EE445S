@@ -176,11 +176,33 @@ We compared the performance of the direct form implementation with a second orde
   \end{center}
 \end{figure}
 
-Explain the major differences between the two filters with respect to their
-	A) Magnitude responses 
-	B) Impulse responses
-2. What is the width of the impulse response for the =0.125 case? 
-3. How would you obtain this number theoretically? (Hint: Look at the fsym and truncation limit you set)
+\begin{enumerate}
+  \begin{item}
+  Explain the major differences between the two filters with respect to their
+    A) Magnitude responses 
+    B) Impulse responses
+
+  \textbf{Answer:}
+    A) The main difference between the magnitude response is that the $\beta = 0.125$ filter has
+    a much lower bandwidth than the $\beta = 1$ filter.\\
+
+    B) The main difference between the impulse response is that the $\beta = 0.125$ filter
+    side lobes decay at a slower rate than the $\beta = 1$ filter side lobes.
+  \end{item}
+
+  \begin{item}
+    What is the width of the impulse response for the $\beta = 0.125$ case? 
+
+  \textbf{Answer:}
+  \end{item}
+
+  \begin{item}
+    How would you obtain this number theoretically? (Hint: Look at the fsym and truncation limit you set)
+
+  \textbf{Answer:}
+  \end{item}
+
+\end{enumerate}
 
 \begin{figure}[h]
   \begin{center}
@@ -208,7 +230,7 @@ b0	&	 1				\\ \hline
 b1	&  0				\\ \hline
 b2	& -1				\\ \hline
 -a1	&	 1.96004	\\ \hline
--a2	&	-0.984414 \\ \hline
+-a2	&	-0.984414
 \end{tabular}
 \end{center}
 
@@ -220,7 +242,7 @@ b0	&	 1				\\ \hline
 b1	&  0				\\ \hline
 b2	& -1				\\ \hline
 -a1	&	 1.87293\\ \hline
--a2	&	-0.969067\\ \hline
+-a2	&	-0.969067
 \end{tabular}
 \end{center}
 
@@ -282,7 +304,7 @@ b2	& -1				\\ \hline
 \begin{tabular}{c|c|c}
 pattern	&	frequency & amplitude \\ \hline
 dotted sequence	&	 2381 Hz	&	1.04 V				\\ \hline
-dotted sequence	&	 2323 Hz	&	1.46 V				\\ \hline
+dotted sequence	&	 2323 Hz	&	1.46 V
 \end{tabular}
 \end{center}
 
@@ -294,7 +316,7 @@ b0	&	 1				\\ \hline
 b1	&  1				\\ \hline
 b2	&  0				\\ \hline
 -a1	&	 0.509525\\ \hline
--a2	&	 0       \\ \hline
+-a2	&	 0
 \end{tabular}
 \end{center}
 
@@ -379,79 +401,20 @@ Also it was interesting to see the effect of using incorrect gains in the cascua
 
 \begin{enumerate}
   \begin{item}
-    Number of taps before you run out of time for FIR filtering.
+		How could pulse shaping be implemented using only a single "filter" (not a bank of filters). Practically, why would this be undesirable?
 
   \textbf{Answer:}
-    For an arbitrary processor using a circular buffer to implement an FIR filter, where $m$ is the time it takes for a multiply to complete and $a$ is the time it takes for an addition to complete.
-    We would want our processing to take less than our sampling period $T_s$.
-    So for an FIR filter with $N$ coefficients we  would have $N$ multiply and $N - 1$ add opperations.
-
-    \begin{equation}
-      T_s > mN + a(N - 1)
-    \end{equation}
-
-    Solving for $N$ we arrive at this constraint for the maximum number of taps.
-
-    \begin{equation}
-      \frac{T_s + a}{m + a} > N
-    \end{equation}
+		Pulse shaping could be implemented by convolving with a single FIR filter. This is undesirable because for baseband transmission we usually take our symbol amplitude vector and upsample (by some fator L) to the DAC frequency before pulse shaping. Because of this upsampling, the amplitude vector contains a lot of extra zeros, which would cause (L - 1) multiplications by 0 for every original symbol amplitude. By using a filter bank, we avoid these
+		fruitless multiplications by 0, and obtain a factor of L performance improvement.
   \end{item}
 
   \begin{item}
-    Why use circular buffers?
+		In the clock recovery system, discuss the need for a Prefiltering. For a symbol rate of 2 kHz, what would be the output if the prefilter attenuated all frequencies greater than 900 Hz? Would it be possible to recover the transmitter's symbol frequency (using the same squaring operation and post-filters as in the lab)? If not, give a short reason why.
 
   \textbf{Answer:}
-    Using a circular buffer eliminates the time needed to shift values using a linear buffer implementation, which would scale shifts linearly.
+		We prefilter to obtain a cosine with a center frequency of $fsym/2$ without high frequency noise. What we are interested in is capturing the phase ($\theta$) and frequency information (fsym) of the cosine to feed this into a Costas or Phase Lock Loop to determine the phase offset for sampling. Any other frequency content is unnecessary.
 
-  \end{item}
-
-  \begin{item}
-    What happens if you do not multiply the scale factor in an IIR filter implementation using a cascade of second-order sections (SOS)?
-
-  \textbf{Answer:}
-    If we do not multiply by a scaling factor our system may be unstable.
-    When we design a transfer function we use a set of specifications to guide our choices of poles and zeros.
-    From this set of poles and zeros we arrive at a single section implementation.
-    To create a more practical implementation we instead break our single section into many second order sections.
-    As a result of factoring our large polynomial into many second order polynomials we get a set of scaling factors between each section.
-    By ignoring these scaling factors, we would essentially change the location of the poles and zeros, and by extent the response of the entire filter.
-  \end{item}
-
-  \begin{item}
-    Advantages and disadvantages of FIR vs. IIR filters. 
-
-  \textbf{Answer:}
-
-    \textbf{FIR}
-
-    \textit{Pros:}
-
-    \begin{itemize}
-      \item Linear phase
-      \item BIBO stability
-    \end{itemize}
-
-    \textit{Cons:}
-
-    \begin{itemize}
-      \item Large number of coefficients
-    \end{itemize}
-
-    \textbf{IIR}
-
-    \textit{Pros:}
-
-    \begin{itemize}
-      \item Low number of Coefficients
-    \end{itemize}
-
-    \textit{Cons:}
-
-    \begin{itemize}
-      \item May become unstable
-      \item non linear phase
-    \end{itemize}
-
+		If the output of the prefilter attenuated all frequencies greater than 900 Hz, we would not be able to recover the transmitter's symbol frequency because $fsym/2$ in this case equals 1 KHz, which would be attenuated by our hypothetical prefilter.
   \end{item}
 
 \end{enumerate}
