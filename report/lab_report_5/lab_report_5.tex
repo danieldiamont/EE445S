@@ -286,132 +286,69 @@ dotted sequence	&	 2323 Hz	&	1.46 V				\\ \hline
 \end{tabular}
 \end{center}
 
-\begin{figure}[h]
-  \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/fir_mag.png}
-    \caption{FIR magnitude response.}
-  \end{center}
-\end{figure}
+\textbf{LPF:}
 
-\textbf{Table:}
 \begin{center}
-\begin{tabular}{c|c|c|c}
-freq (Hz)	& MATLAB dB	& C dB	& SOS dB \\ \hline
-1  & 	-49.336911533	           &   -21.6164638623	   & -23.8559390512 \\ \hline
-2  & 	-30.4835221116	         &   -18.9224923843	   & -22.8898454597 \\ \hline
-3  & 	-18.5780755991	         &   -21.6164638623	   & -16.2092403443 \\ \hline
-4  & 	-9.4231800523	           &   -16.4237176522	   & -8.3784900031  \\ \hline
-5  & 	-3.0102999566	           &   -8.1242506928	   & -2.3578900898  \\ \hline
-6  & 	-0.4907931843	           &   -2.1875730714	   & 0              \\ \hline
-7  & 	-0.0431819157	           &   0	               & 0              \\ \hline
-8  & 	-0.0013881395	           &   0.0008193849	     & 0              \\ \hline
-9  & 	-0.000001107	           &   0.0016386925	     & 0              \\ \hline
-10 &	-2.45915822097029E-06	   &   0.0024579228	     & 0              \\ \hline
-11 &	-0.0012585765	           &   0.0032770759	     & 0              \\ \hline
-12 &	-0.0255740552	           &   0.0040961518	     & 0              \\ \hline
-13 &	-0.1988119832	           &   0.0049151504	     & 0              \\ \hline
-14 &	-0.9408492775	           &   -0.5061173053	   & -0.5061173053  \\ \hline
-15 &	-3.0102999566	           &   -2.4443175655	   & -2.7088828801  \\ \hline
-16 &	-6.7158691567	           &   -4.9430922976	   & -6.1860504326  \\ \hline
-17 &	-11.500586955	           &   -9.9793317575	   & -10.1886404311 \\ \hline
-18 &	-16.8767672084	         &   -14.144850606	   & -15.595863949  \\ \hline
-19 &	-22.8006774261	         &   -16.4237176522	   & -18.9224923843 \\ \hline
-20 &	-29.5500422777	         &   -19.5217568519	   & -20.5061173053 \\ \hline
-21 &	-37.7484943246	         &   -20.5061173053	   & -22.0205315841 \\ \hline
-22 &	-48.8004344666	         &   -20.5061173053	   & -22.8898454597 \\ \hline
-23 &	-67.1478923263	         &   -20.5061173053	   & -23.3594673767 \\ \hline
-24 &	-77.232927344	           &   -20.5061173053	   & -23.8559390512 \\ \hline
+\begin{tabular}{c|c}
+b0	&	 1				\\ \hline
+b1	&  1				\\ \hline
+b2	&  0				\\ \hline
+-a1	&	 0.509525\\ \hline
+-a2	&	 0       \\ \hline
 \end{tabular}
 \end{center}
-
-\pagebreak
 
 \textbf{Code:}
 
 \begin{verbatim}
-/*********Coefficients*************/
-float B[N + 1] = {
-    0.108499,	/* B[0] */
-           0,	/* B[1] */
-   -0.325498,	/* B[2] */
-           0,	/* B[3] */
-    0.325498,	/* B[4] */
-           0,	/* B[5] */
-   -0.108499,	/* B[6] */
-};
+  if (counter == 0) {
+		symbol = SSRG_update(&SSRG_state); // a faster version of rand() % 2
+		x[0] = data[symbol]; // read the table
+	}
 
-float A[N + 1] = {
-           1,	/* A[0] */
-    -1.13553,	/* A[1] */
-    0.944316,	/* A[2] */
-   -0.637821,	/* A[3] */
-    0.544417,	/* A[4] */
-   -0.173657,	/* A[5] */
-   0.0459008,	/* A[6] */
-};
+  // perform impulse modulation based on the FIR filter, B[N] 
+  y  = 0;
+
+  for (i = 0; i < 8; i++) {
+		y +=  x[i]*B[counter + 20*i];	// perform the dot-product
+	}
+
+  if (counter == (samplesPerSymbol - 1)) {
+    counter = -1; 
+
+		/* shift x[] in preparation for the next symbol */
+ 		for (i = 9; i > 0; i--) {
+			x[i] = x[i - 1];          // setup x[] for the next input
+		}
+  }
+
+  counter++;
+
+	output = y*cosine[counter & 3];
+
+	//receiver
+	demod = 2*output*cosine[counter & 3];
+
+	//LPF
+	biquad_x[0][0] = demod;
+
+	CodecDataOut.Channel[LEFT]  = y; // setup the LEFT  value
+	CodecDataOut.Channel[RIGHT] = G[0] * biquad(0, biquad_x[0][0]); // setup the RIGHT value
 \end{verbatim}
 
-\begin{verbatim}
-/*********df_one*******************/
-float sum = 0;
-int i;
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/tx_rx.png}
+    \caption{transmit and recieve}
+  \end{center}
+\end{figure}
 
-//dot product for numerator
-for(i = 0; i < N + 1; i++)
-{
-		sum += B[i]*x[i];
-}
-
-//dot product for denominator
-for(i = 1; i < N + 1; i++)
-{
-		sum -= A[i]*y[i];
-}
-
-y[0] = A[0]*sum;
-
-//setup for next iteration
-for(i = N; 0 < i; i--)
-{
-		x[i] = x[i - 1];
-		y[i] = y[i - 1];
-}
-\end{verbatim}
-
-\begin{verbatim}
-/************SOS Coeff***************/
-float SOS[SOS_SIZE][5] = {
-{           1,            0,           -1,      1.28028,    -0.657254}, /* SOS[0] */
-{           1,            0,           -1,    -0.513935,    -0.530466}, /* SOS[1] */
-{           1,            0,           -1,     0.369184,    -0.131652}, /* SOS[2] */
-};
-
-float G[SOS_SIZE + 1] = {    0.4999,
-                             0.4999,
-                             0.4342,
-                             1.0000};
-\end{verbatim}
-
-\begin{verbatim}
-/************SOS*******************/
-float biquad(int index, float value)
-{
-	x[index][0] = value;
-	float ret_val = SOS[index][0]*x[index][0] + SOS[index][1]*x[index][1] + 
-  SOS[index][2]*x[index][2] +
-	SOS[index][3]*y[index][1] + SOS[index][4]*y[index][2];
-
-	y[index][0] = ret_val;
-
-	x[index][2] = x[index][1];
-	x[index][1] = x[index][0];
-
-	y[index][2] = y[index][1];
-	y[index][1] = y[index][0];
-
-	return ret_val;
-}
-\end{verbatim}
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/probability_of_error.png}
+    \caption{PES}
+  \end{center}
+\end{figure}
 
 %----------------------------------------------------------------------------------------
 %	SECTION 4
