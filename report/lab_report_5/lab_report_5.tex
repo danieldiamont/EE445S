@@ -23,9 +23,9 @@
 
 \usepackage{graphicx} % Required for the inclusion of images
 \usepackage{amsmath} % Required for some math elements 
-\usepackage{cite}
-\usepackage{subcaption} %Required to group figures
-\usepackage{float}
+%\usepackage{cite}
+%\usepackage{subcaption} %Required to group figures
+%\usepackage{float}
 
 \setlength\parindent{0pt} % Removes all indentation from paragraphs
 
@@ -72,11 +72,11 @@ Pulse shaping refers in this case to applying a band-limited pulse to an impulse
 
 Specifically, since the raised cosine pulse shape with $ \beta = 1 $ has most of its power in the time domain inside of of the symbol period, then it follows that using the raised cosine to shape successive symbol amplitudes causes less inter symbol interference (ISI). In contrast, using a raised cosine with $ \beta = 0.125, $ which has more power leakage across time with respect to the previous example, then it follows that there will be more inter symbol interference. We can see the difference in ISI by comparing the eye diagrams in Figure 3 and Figure 4. It is clear that we would be able correctly quantize with a higher probability data using a raised cosine with $ \beta = 1 $ as opposed to data using raised cosine with $ \beta = 0.125. $
 
-\subsection{SCR}
-
+\subsection{Symbol Clock Recovery (SCR)}
+The goal of SCR is for the receiver to re-generate the clock signal that the transmitter used to transmit the data in order for the receiver to properly sample the incoming transmission. The only necessary knowledge that the receiver needs in this case is to know the bandwidth of symbol pulse shape. Since the pulse is designed to minimize inter symbol interference, the receiver can expect the maximum frequency of the transmission to be $ \frac{f_{sym}}{2}. $ Using a band-pass filter, we can recover a cosine with frequency $ \frac{f_{sym}}{2}. $ Since we want $ f_{sym}, $ we can square the signal in the time domain (convolution with itself in the frequency domain) to obtain a spectrum with a DC component and frequencies at $ - f_{sym} $ and $ f_{sym}.$ Lastly, we add another bandpass filter to remove the DC component and any high frequency noise, and this recovers the clock used by the transmitter.
 
 \subsection{Demodulation}
-
+Demodulation in this case refers to recovering a baseband signal that has been modulated with a carrier wave. Part of classic reconstruction, the process is to multiply the signal once again at the receiver by the carrier wave. Since, modulating by the carrier wave twice, i.e., once at the transmitter and once at the receiver, amounts to running the signal through a squaring block, we get a copy of the signal at baseband, and a copy of the signal at plus/minus twice the carrier frequency. Then, we run this result through a low-pass filter to get rid of the high frequency copies of the signal, and we obtain the initial signal at baseband.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 2
@@ -123,33 +123,28 @@ Specifically, since the raised cosine pulse shape with $ \beta = 1 $ has most of
 
 \begin{figure}[h]
   \begin{center}
-
-    \begin{subfigure}[b]{0.5\linewidth}
       \includegraphics[width=\linewidth]{img/magnitude_response_beta_1.png}
       \caption{Magnitude Response $\beta = 1$}
-    \end{subfigure}
-
-    \begin{subfigure}[b]{0.5\linewidth}
-      \includegraphics[width=\linewidth]{img/magnitude_response_beta_125.png}
-      \caption{Magnitude Response $\beta = 0.125$}
-    \end{subfigure}
-
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
+      \includegraphics[width=\linewidth]{img/magnitude_response_beta_125.png}
+      \caption{Magnitude Response $\beta = 0.125$}
+  \end{center}
+\end{figure}
 
-    \begin{subfigure}[b]{0.5\linewidth}
+\begin{figure}[h]
+  \begin{center}
       \includegraphics[width=\linewidth]{img/impulse_response_beta_1.png}
       \caption{Time Response $\beta = 1$}
-    \end{subfigure}
-
-    \begin{subfigure}[b]{0.5\linewidth}
+  \end{center}
+\end{figure}
+\begin{figure}[h]
+  \begin{center}
       \includegraphics[width=\linewidth]{img/impulse_response_beta_125.png}
       \caption{Time Response $\beta = 0.125$}
-    \end{subfigure}
-
   \end{center}
 \end{figure}
 
@@ -381,15 +376,5 @@ b2	&  0				\\ \hline
   \end{item}
 
 \end{enumerate}
-
-%----------------------------------------------------------------------------------------
-%	BIBLIOGRAPHY
-%----------------------------------------------------------------------------------------
-
-\bibliography{mybib}
-\bibliographystyle{plain}
-
-%----------------------------------------------------------------------------------------
-
 
 \end{document}
