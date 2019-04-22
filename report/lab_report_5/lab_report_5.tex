@@ -166,12 +166,14 @@ Demodulation in this case refers to recovering a baseband signal that has been m
     What is the width of the impulse response for the $\beta = 0.125$ case? 
 
   \textbf{Answer:}
+    From the pulse shape samples for the $\beta = 0.125$ filter it looks like there are significant impulses at all 160 samples.
   \end{item}
 
   \begin{item}
     How would you obtain this number theoretically? (Hint: Look at the fsym and truncation limit you set)
 
   \textbf{Answer:}
+    We could evaluate the pulse shape with the specific parameters that we used in the lab and truncate after it falls below a specific threshold.
   \end{item}
 
 \end{enumerate}
@@ -350,6 +352,26 @@ b2	&  0				\\ \hline
 
 \section{Discussion}
 
+\subsection{Pulse Shaping}
+
+When decoding a signal we need to discard the start of a signal.
+Pulse shaping with a lot of excess bandwidth allows more room for error in any sampling impairments that are inherent to digital communication.
+However, it requires twice as much bandwidth as the ideal nyquist pusle shape.
+
+\subsection{Symbol Clock Recovery (SCR)}
+
+It is clear that for any carrier based communication system it is important for both the transmitter and reciever occilator to have matching frequencies and phases.
+We observe that both the frequency and phase can be recovered form the recieved signal.
+Before we can recover the frequency and phase the signal needs to be preprocessed.
+
+The preprocessing filters can be implemented using second order sections.
+When preprocessing one must be carefull to not cause overflows, we had to scale our input and output to avoid overflows.
+
+\subsection{Demodulation}
+
+Demodulation in the ideal channel is very simple. It is just multiplying by cosine flowed by a scaled LPF.
+We can implement the LPF with second order sections, so again we need to watch for any error propogation.
+Lastly the SNR vs. SER is a good theoretical measurement of what you should expect your symbol error rate to be.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 5
