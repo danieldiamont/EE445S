@@ -343,14 +343,14 @@ b2	&  0				\\ \hline
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/tx_rx.png}
-    \caption{transmit and recieve}
+    \caption{Demodulated PAM}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/probability_of_error.png}
-    \caption{PES}
+    \caption{Probability of Error vs. SNR}
   \end{center}
 \end{figure}
 
@@ -368,18 +368,18 @@ However, it requires twice as much bandwidth as the ideal nyquist pusle shape.
 
 \subsection{Symbol Clock Recovery (SCR)}
 
-It is clear that for any carrier based communication system it is important for both the transmitter and reciever occilator to have matching frequencies and phases.
-We observe that both the frequency and phase can be recovered form the recieved signal.
+It is clear that for any carrier based communication system it is important for both the transmitter and receiver oscillator to have match frequency and phase.
+We observe that both the frequency and phase can be recovered form the received signal.
 Before we can recover the frequency and phase the signal needs to be preprocessed.
 
 The preprocessing filters can be implemented using second order sections.
-When preprocessing one must be carefull to not cause overflows, we had to scale our input and output to avoid overflows.
+When preprocessing one must be careful to not cause overflows: we had to scale our input and output to avoid this.
 
 \subsection{Demodulation}
 
-Demodulation in the ideal channel is very simple. It is just multiplying by cosine flowed by a scaled LPF.
+Demodulation in the ideal channel is very simple. It is just multiplying by cosine followed by a scaled LPF.
 We can implement the LPF with second order sections, so again we need to watch for any error propogation.
-Lastly the SNR vs. SER is a good theoretical measurement of what you should expect your symbol error rate to be.
+Lastly the probability of error vs. SNR is a good theoretical measurement of what you should expect your symbol error rate to be.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 5
