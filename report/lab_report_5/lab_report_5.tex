@@ -68,9 +68,7 @@ Instructor: & Professor Evans % Instructor/supervisor
 In this lab, we investigated aspects of pulse amplitude modulation (PAM) for baseband transmission and reception. The lab was split up into the following three parts: pulse shaping, symbol clock recovery, and demodulation.
 
 \subsection{Pulse Shaping}
-Pulse shaping refers in this case to applying a band-limited pulse to an impulse train of symbol amplitudes before sending the signal to the DAC. In this lab, we explored the effects of using differently parametrized raised cosine pulses on the time domain representation of the signal, as well as the effects on quantization.
-
-Specifically, since the raised cosine pulse shape with $ \beta = 1 $ has most of its power in the time domain inside of of the symbol period, then it follows that using the raised cosine to shape successive symbol amplitudes causes less inter symbol interference (ISI). In contrast, using a raised cosine with $ \beta = 0.125, $ which has more power leakage across time with respect to the previous example, then it follows that there will be more inter symbol interference. We can see the difference in ISI by comparing the eye diagrams in Figure 3 and Figure 4. It is clear that we would be able correctly quantize with a higher probability data using a raised cosine with $ \beta = 1 $ as opposed to data using raised cosine with $ \beta = 0.125. $
+Pulse shaping refers in this case to applying a band-limited pulse to an impulse train of symbol amplitudes before sending the signal to the DAC. In this lab, we explored the effects of using differently parametrized raised cosine pulses on the time domain representation of the signal, as well as the effects on quantization given differences in intersymbol interference.
 
 \subsection{Symbol Clock Recovery (SCR)}
 The goal of SCR is for the receiver to re-generate the clock signal that the transmitter used to transmit the data in order for the receiver to properly sample the incoming transmission. The only necessary knowledge that the receiver needs in this case is to know the bandwidth of symbol pulse shape. Since the pulse is designed to minimize inter symbol interference, the receiver can expect the maximum frequency of the transmission to be $ \frac{f_{sym}}{2}. $ Using a band-pass filter, we can recover a cosine with frequency $ \frac{f_{sym}}{2}. $ Since we want $ f_{sym}, $ we can square the signal in the time domain (convolution with itself in the frequency domain) to obtain a spectrum with a DC component and frequencies at $ - f_{sym} $ and $ f_{sym}.$ Lastly, we add another bandpass filter to remove the DC component and any high frequency noise, and this recovers the clock used by the transmitter.
@@ -84,6 +82,16 @@ Demodulation in this case refers to recovering a baseband signal that has been m
 
 \section{Methods}
 
+\subsection{Pulse Shaping}
+First, we created a sequence of 200 random BPSK symbols, and we designed the two raised cosine filters used to pulse shape the sequence to prepare it for transmission. We upsambled the sequence and convolved with the pulse shapes in order to interpolate between the original symbol amplitudes. We used the 'eyediagram' command in MATLAB to explore the impact of each pulse shape on intersymbol interference (ISI). We found that the raised cosine with $ \beta = 1 $ perfomed better in terms of ISI in comparison to the raised cosine with $ \beta = 0.125. $
+\linebreak
+Specifically, since the raised cosine pulse shape with $ \beta = 1 $ has most of its power in the time domain inside of of the symbol period, then it follows that using the raised cosine to shape successive symbol amplitudes causes less inter symbol interference (ISI). In contrast, using a raised cosine with $ \beta = 0.125, $ which has more power leakage across time with respect to the previous example, then it follows that there will be more inter symbol interference. We can see the difference in ISI by comparing the eye diagrams in Figure 3 and Figure 4. It is clear that we would be able correctly quantize with a higher probability data using a raised cosine with $ \beta = 1 $ as opposed to data using raised cosine with $ \beta = 0.125. $
+
+\subsection{Symbol Clock Recovery}
+First, we created two IIR bandpass filters: one to retrieve a cosine at $ \frac{f_{sym}}{2} $ from the original signal, and one to remove the DC component of the squared cosine with a frequency at $ f_{sym}. $ We were able to easily recover the clock frequency used to carry the symbol amplitudes.
+
+\subsection{Demodulation}
+As discussed in the introduction, the demodulation process, when assuming a perfect channel, is to multiply again by the carrier wave, and then to run the signal by a low-pass filter to obtain the data at baseband without the high frequency copies.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 3
@@ -96,28 +104,28 @@ Demodulation in this case refers to recovering a baseband signal that has been m
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/upsampled_bpsk_raised_cosine_beta_1.png}
-    \caption{Pulse shape BPSK $\beta = 1$.}
+    \caption{Pulse shaped BPSK $\beta = 1$.}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/upsampled_bpsk_raised_cosine_beta_125.png}
-    \caption{Pulse shape BPSK $\beta = 0.125$.}
+    \caption{Pulse shaped BPSK $\beta = 0.125$.}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/eye_diagram_beta_1.png}
-    \caption{Eye diagram $\beta = 1$}
+    \caption{Eye Diagram $\beta = 1$}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/eye_diagram_beta_125.png}
-    \caption{Eye diagram $\beta = 0.125$}
+    \caption{Eye Diagram $\beta = 0.125$}
   \end{center}
 \end{figure}
 
@@ -223,7 +231,7 @@ b2	& -1				\\ \hline
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/dotting_sequence_SCR.png}
-    \caption{Dotting sequence}
+    \caption{Dotting Sequence SCR}
   \end{center}
 \end{figure}
 
