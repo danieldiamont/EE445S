@@ -1,0 +1,8 @@
+sps = 20; % 20 samples per symbol
+beta = 0.8;
+span = 4; % symbol periods
+h = rcosdesign(beta, span, sps);
+h = h ./ 0.;
+
+fvtool(h, 'Analysis', 'impulse');
+title('Impulse Response Raised Cosine (beta = 0.8)');
