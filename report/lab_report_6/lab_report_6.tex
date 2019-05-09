@@ -95,7 +95,7 @@ Instructor: & Professor Evans % Instructor/supervisor
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_a_profile.png}
-    \caption{In-phase and Quadrature component.}
+    \caption{In-phase and Quadrature profile.}
   \end{center}
 \end{figure}
 
@@ -112,7 +112,7 @@ Instructor: & Professor Evans % Instructor/supervisor
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_b_profile.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{In-phase and Quadrature profile of PN sequence.}
   \end{center}
 \end{figure}
 
@@ -122,14 +122,14 @@ Instructor: & Professor Evans % Instructor/supervisor
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_c_oscilloscope.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{In-phase and Quadrature component of optimized pulse shape.}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_c_profile.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{In-phase and Quadrature profile of optimized pulse shape.}
   \end{center}
 \end{figure}
 
@@ -139,19 +139,19 @@ Instructor: & Professor Evans % Instructor/supervisor
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_d_oscilloscope.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{In-phase and Quadrature component of 16-QAM.}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_d_profile.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{In-phase and Quadrature component of 16-QAM PN sequence.}
   \end{center}
 \end{figure}
 
 \pagebreak
-\textbf{Code:}
+\textbf{Code: 16-QAM}
 
 \begin{verbatim}
 
@@ -232,7 +232,7 @@ Instructor: & Professor Evans % Instructor/supervisor
 \end{figure}
 
 \pagebreak
-\textbf{Code:}
+\textbf{Code: 16-QAM with PN sequence}
 
 \begin{verbatim}
 
@@ -300,36 +300,19 @@ Instructor: & Professor Evans % Instructor/supervisor
 \end{verbatim}
 
 \pagebreak
-\textbf{Task 2a)}
+\textbf{Task 2b)}
 
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_2_b_oscilloscope.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{8kHz carrier wave.}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_2_b_profile.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
-  \end{center}
-\end{figure}
-
-\pagebreak
-\textbf{Task 2b)}
-
-\begin{figure}[h]
-  \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/task_2_c_oscilloscope.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
-  \end{center}
-\end{figure}
-
-\begin{figure}[h]
-  \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/task_2_c_profile.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{8kHz carrier wave profile.}
   \end{center}
 \end{figure}
 
@@ -339,14 +322,14 @@ Instructor: & Professor Evans % Instructor/supervisor
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_2_c_oscilloscope.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{Demodulated in-phase component.}
   \end{center}
 \end{figure}
 
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_2_c_profile.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{Demodulated in-phase profile.}
   \end{center}
 \end{figure}
 
@@ -356,28 +339,19 @@ Instructor: & Professor Evans % Instructor/supervisor
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_2_c_oscilloscope.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{Demodulated quadrature component.}
   \end{center}
 \end{figure}
-
-\textbf{Task 2e)}
 
 \begin{figure}[h]
   \begin{center}
     \includegraphics[width=0.65\textwidth]{img/task_2_c_profile.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
-  \end{center}
-\end{figure}
-
-\begin{figure}[h]
-  \begin{center}
-    \includegraphics[width=0.65\textwidth]{img/task_2_d_delay.png}
-    \caption{In-phase and Quadrature component of PN sequence.}
+    \caption{Demodulated quadrature profile.}
   \end{center}
 \end{figure}
 
 \pagebreak
-\textbf{Code:}
+\textbf{Code: Reciever Demodulation}
 
 \begin{verbatim}
 	// I added my impulse modulated QPSK routine here
@@ -453,18 +427,25 @@ Instructor: & Professor Evans % Instructor/supervisor
     Explain why we changed the carrier frequency to properly simulate the receiver. 
 
   \textbf{Answer:}
+    The sampling rate of the DSP board is set to 48kHz so the maximum frequency that we can represent is 24kHz.
+    If we kept the the frequency of the carrier at 12kHz, then when we demodulated we would have a sinusoid alias to DC
+    because we would get the original baseband signal plus a sinusoid with twice the carrier frequency.
   \end{item}
 
   \begin{item}
     Explain your choice of cutoff frequency for the demodulation filter.
 
   \textbf{Answer:}
+    The cutoff must be equal to the bandwidth of the baseband signal, but less than twice the carrier frequency.
   \end{item}
 
   \begin{item}
     The QAM signal can be viewed as the sum of two PAM signals that each have been modulated by a carrier. How is the bandwidth of the QAM signal related to the bandwidth of its two (carrier-modulated) PAM components?
 
   \textbf{Answer:}
+    QAM encodes information in both the amplitude and phase of the carrier, where as PAM only encodes information in the amplitude of the carrier.
+    So PAM takes twice the bandwidth of QAM.
+
   \end{item}
 \end{enumerate}
 
