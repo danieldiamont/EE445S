@@ -526,20 +526,29 @@ For 16-QAM, we create our symbol table using Gray Coding to implement symbol map
 
 \section{Discussion}
 
+In general, when writing software it is good practice to use descriptive variable names to avoid confusion.
+For example we spent 30 min debugging because we confused one of our counter variables.
+
 \subsection{Part 1: Understanding QAM Transmission}
 
-\subsubsection{Task A + B: QAM Transmitter Design}
-
-\subsubsection{Task C: Optimized Pulse Shaping for QAM Transmitter}
+There are many optimizations that are available for pulse shaping.
+For this optimization the key insight is to know which multiplications will be multiply by zeros. 
+In this particular case we notice that the in-phase and quadrature component are orthoganal,
+so they will alternate between zero and non-zero.
+Specifically during zero crossings the multiplication output of pusle shaping convulution will be zero.
+This allows us to save time by avoiding unnecessary multiplications.
 
 \subsubsection{Task D + E: Modifications for 16-QAM}
 
 \subsection{Part 2: Understanding QAM Demodulation}
+When calculating the LUT for the QAM mixers it is important to use enough numerical precision.
+This ensures that we do not introduce any phase errors into the carriers.
+In QAM it is important that the carriers are orthoganl to each other, so any phase errors between
+the carriers could introduce unwanted ISI.
 
-\subsubsection{Task A + B: Transmitter Modifications for QAM Demodulation}
-
-\subsubsection{Task C + D: QAM Receiver Design}
-
+When creating the bandpass signal it is crucial to be aware of the average power of the constellation,
+the power in the transmit pulse shape, and the output gain right before D/A.
+Not correctly judging the power in the bandpass signal can lead to overflows that are hard to detect.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 5
