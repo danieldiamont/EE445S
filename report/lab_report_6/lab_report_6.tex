@@ -99,10 +99,26 @@ For tasks C and D, we design a demodulation block to multiply and scale the in-p
 To implement a maximal length PN sequence, we use a scrambler with a polynomial of $ 1 + D^{18} + D^{23} $ with an initial state of 5. Additionally, we design a raised cosine pulse shape of 80 samples, 0.8 excess bandwidth, finite impulse response, and 4 symbol periods. We run the PN bit stream into our 4-QAM constellation to map to symbol amplitudes and pulse shape them using our raised cosine.
 
 \\
+\pagebreak
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/task_b_oscilloscope.png}
+    \caption{In-phase and Quadrature component of PN sequence.}
+  \end{center}
+\end{figure}
 
 \subsubsection{Task C: Optimized Pulse Shaping for QAM Transmitter}
 We can optimize the pulse shaping process for QAM by using a switch statement to track the state of the cosine and sine carrier waves. In this manner, we can compute the pulse shaped symbol amplitude for states when the carrier value is non-zero. This way we can obtain a 4x speed improvement by not computing calculations that we know will have a result of 0.
+
 \\
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/task_c_oscilloscope.png}
+    \caption{In-phase and Quadrature Component using Optimized Pulse Shape.}
+  \end{center}
+\end{figure}
+
 \textbf{Code: Optimized Pulse Shape}
 \begin{verbatim}
 	// I added my impulse modulated, QPSK routine here
@@ -116,21 +132,17 @@ We can optimize the pulse shaping process for QAM by using a switch statement to
 	output = 0;
 
 	switch(counter & 3) {
-
 	case  0: // perform the I impulse modulation based on the FIR filter, B[N] 
-
 		for (i = 0; i < 6; i++) {
 			output += xI[i]*B[counter + 20*i]; // perform the "I" dot-product
 		}
 		break;
-
 	case 1: // perform the Q impulse modulation based on the FIR filter, B[N] 
 
 		for (i = 0; i < 6; i++) {
 			output -= xQ[i]*B[counter + 20*i]; // perform the "Q" dot-product
 		}
 		break;
-
 	case 2: // perform the -I impulse modulation based on the FIR filter, B[N] 
 
 		for (i = 0; i < 6; i++) {
@@ -152,7 +164,6 @@ We can optimize the pulse shaping process for QAM by using a switch statement to
 			xI[i] = xI[i-1];  // setup xI[] for the next input value
 		}
 	}
-
 	else if (counter >= (samplesPerSymbol - 1)) {
 		counter = -1;  // reset in preparation for the next set of bits
 
@@ -169,7 +180,15 @@ We can optimize the pulse shaping process for QAM by using a switch statement to
 \end{verbatim}
 \subsubsection{Task D + E: Modifications for 16-QAM}
 For 16-QAM, we create our symbol table using Gray Coding to implement symbol mapping.
+
 \\
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/task_d_oscilloscope.png}
+    \caption{In-phase and Quadrature Component of 16-QAM.}
+  \end{center}
+\end{figure}
 \textbf{Code: 16-QAM}
 
 \begin{verbatim}
@@ -313,9 +332,82 @@ const float cosine[6] = {1.0, 1.0/2.0, -1.0/2.0, -1.0, -1.0/2.0, 1.0/2.0};
 const float sine[6] = {0, SQRT_3_DIV_2, SQRT_3_DIV_2, 0, -SQRT_3_DIV_2, -SQRT_3_DIV_2};
 \end{verbatim}
 
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/task_2_b_oscilloscope.png}
+    \caption{8kHz Sine and Cosine for QAM mixers.}
+  \end{center}
+\end{figure}
+
+\pagebreak
+
 \subsubsection{Task C + D: QAM Receiver Design}
 For 16-QAM, we create our symbol table using Gray Coding to implement symbol mapping, and then we tested the results on the oscilloscope by displaying the original in-phase component and a matching demodulated in-phase component. Similarly, we checked our quadrature components.
 
+\textbf{Code: Receiver Demodulation}
+
+\begin{verbatim}
+	// I added my impulse modulated QPSK routine here
+	if (counter == 0) {
+		/* generate 2 random bits */
+		symbol = SSRG_update(&SSRG_state); 
+		symbol = (symbol << 1) + SSRG_update(&SSRG_state);
+
+		xI[0]  = QPSK_LUT[symbol][RIGHT];  
+		xQ[0]  = QPSK_LUT[symbol][ LEFT];   
+	}
+
+	// perform impulse modulation based on the FIR filter, B[N]
+	yI = 0;
+	yQ = 0;
+
+	for (i = 0; i < span; i++) {
+		// perform the "I" dot-product
+		yI += xI[i]*pulse[counter + samplesPerSymbol*i];	
+
+		// perform the "Q" dot-product
+		yQ += xQ[i]*pulse[counter + samplesPerSymbol*i];	
+	}
+
+	if (counter >= (samplesPerSymbol - 1)) {
+		counter = -1; 
+
+		/* shift xI[] and xQ[] in preparation to receive the next input */
+		for (i = 5; i > 0; i--) {
+			// setup xI[] for the next input value
+			xI[i] = xI[i-1];  
+
+			// setup xQ[] for the next input value
+			xQ[i] = xQ[i-1];  
+		}
+	}
+
+	counter++;
+	carrier_index = (carrier_index + 1) % 6;
+
+	output = output_gain*(yI*cosine[carrier_index] - yQ*sine[carrier_index]);
+	// end of my impulse modulated QPSK routine
+
+	//demodulate in-phase and quadrature
+  float demod_inphase = 2*output*cosine[carrier_index];
+  float demod_quad = -2*output*sine[carrier_index];
+
+  //LPF
+  biquad_x_inphase[0][0] = demod_inphase;
+  biquad_x_quad[0][0] = demod_quad;
+
+  float output_inphase = G[0] * biquad_inphase(0, biquad_x_inphase[0][0]);
+  float output_quad = G[0] * biquad_quadrature(0, biquad_x_quad[0][0]);
+\end{verbatim}
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{img/task_2_c_oscilloscope.png}
+    \caption{Demodulated Quadrature Component.}
+  \end{center}
+\end{figure}
+
+\pagebreak
 %----------------------------------------------------------------------------------------
 %	SECTION 3
 %----------------------------------------------------------------------------------------
@@ -464,61 +556,6 @@ For 16-QAM, we create our symbol table using Gray Coding to implement symbol map
 \end{figure}
 
 \pagebreak
-\textbf{Code: Receiver Demodulation}
-
-\begin{verbatim}
-	// I added my impulse modulated QPSK routine here
-	if (counter == 0) {
-		/* generate 2 random bits */
-		symbol = SSRG_update(&SSRG_state); 
-		symbol = (symbol << 1) + SSRG_update(&SSRG_state);
-
-		xI[0]  = QPSK_LUT[symbol][RIGHT];  
-		xQ[0]  = QPSK_LUT[symbol][ LEFT];   
-	}
-
-	// perform impulse modulation based on the FIR filter, B[N]
-	yI = 0;
-	yQ = 0;
-
-	for (i = 0; i < span; i++) {
-		// perform the "I" dot-product
-		yI += xI[i]*pulse[counter + samplesPerSymbol*i];	
-
-		// perform the "Q" dot-product
-		yQ += xQ[i]*pulse[counter + samplesPerSymbol*i];	
-	}
-
-	if (counter >= (samplesPerSymbol - 1)) {
-		counter = -1; 
-
-		/* shift xI[] and xQ[] in preparation to receive the next input */
-		for (i = 5; i > 0; i--) {
-			// setup xI[] for the next input value
-			xI[i] = xI[i-1];  
-
-			// setup xQ[] for the next input value
-			xQ[i] = xQ[i-1];  
-		}
-	}
-
-	counter++;
-	carrier_index = (carrier_index + 1) % 6;
-
-	output = output_gain*(yI*cosine[carrier_index] - yQ*sine[carrier_index]);
-	// end of my impulse modulated QPSK routine
-
-	//demodulate in-phase and quadrature
-  float demod_inphase = 2*output*cosine[carrier_index];
-  float demod_quad = -2*output*sine[carrier_index];
-
-  //LPF
-  biquad_x_inphase[0][0] = demod_inphase;
-  biquad_x_quad[0][0] = demod_quad;
-
-  float output_inphase = G[0] * biquad_inphase(0, biquad_x_inphase[0][0]);
-  float output_quad = G[0] * biquad_quadrature(0, biquad_x_quad[0][0]);
-\end{verbatim}
 
 %----------------------------------------------------------------------------------------
 %	SECTION 4
