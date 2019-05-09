@@ -64,8 +64,28 @@ Instructor: & Professor Evans % Instructor/supervisor
 %----------------------------------------------------------------------------------------
 
 \section{Introduction}
+This lab was split up into two sections. The first section focused on understanding a QAM transmitter, and the second section focused on implementing the demodulation code for a QAM receiver.
 
-\subsection{Pulse Shaping}
+\subsection{Part 1: Understanding QAM Transmission}
+This part of the lab involved redesigning the QAM transmitter to implement a maximal length pseudo-noise sequence to generate symbols, optimizing the pulse shaping convolution using switch statements, and making a modification to support 16-QAM transmission.
+
+\subsubsection{Task A + B: QAM Transmitter Design}
+QAM transmission is the process of taking a bit stream and mapping it to a constellation of symbol amplitudes in the complex plane. Once we have generated a symbol stream, we convolve the stream with a raised cosine pulse shape to create a band-limited baseband signal.
+
+\subsubsection{Task C: Optimized Pulse Shaping for QAM Transmitter}
+Upon closer inspection of the data flow, we notice that for upconverted QAM, the in-phase and quadrature mixer outputs alternate being 0 by 90 degrees. This leads to an optimization where we alternate which channel we compute the pulse shape for (in-phase or quadrature) to avoid usless multiplications by zero.
+
+\subsubsection{Task D + E: Modifications for 16-QAM}
+For this task, we create our own constellation look-up table using Gray Coding to implement symbol-mapping for 16-QAM.
+
+\subsection{Part 2: Understanding QAM Demodulation}
+This part of the lab involved redesigning a QAM receiver so that we could implement demodulation.
+
+\subsubsection{Task A + B: Transmitter Modifications for QAM Demodulation}
+For tasks A and B, we modify the carrier frequency to prevent aliasing during the demodulation phase of the receiver. This involves changes to the look-up table during the modulation step of the transmitter.
+
+\subsubsection{Task C + D: QAM Receiver Design}
+For tasks C and D, we design a demodulation block to multiply and scale the in-phase and quadrature component of the QAM signal. Additionally, we design an IIR Butterworth low-pass filter to remove high-frequency copies of the signal and retain the data at baseband.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 2
@@ -73,7 +93,31 @@ Instructor: & Professor Evans % Instructor/supervisor
 
 \section{Methods}
 
-\subsection{Pulse Shaping}
+\subsection{Part 1: Understanding QAM Transmission}
+
+\subsubsection{Task A + B: QAM Transmitter Design}
+To implement a maximal length PN sequence, we use a scrambler with a polynomial of $ 1 + D^{18} + D^{23} $ with an initial state of 5. Additionally, we design a raised cosine pulse shape of 80 samples, 0.8 excess bandwidth, finite impulse response, and 4 symbol periods. We run the PN bit stream into our 4-QAM constellation to map to symbol amplitudes and pulse shape them using our raised cosine.
+
+\subsubsection{Task C: Optimized Pulse Shaping for QAM Transmitter}
+We can optimize the pulse shaping process for QAM by using a switch statement to track the state of the cosine and sine carrier waves. In this manner, we can compute the pulse shaped symbol amplitude for states when the carrier value is non-zero. This way we can obtain a 4x speed improvement by not computing calculations that we know will have a result of 0.
+
+\subsubsection{Task D + E: Modifications for 16-QAM}
+For 16-QAM, we create our symbol table using Gray Coding to implement symbol mapping.
+
+\subsection{Part 2: Understanding QAM Demodulation}
+
+\subsubsection{Task A + B: Transmitter Modifications for QAM Demodulation}
+For tasks A and B, we changed the frequency of the carrier waves to be 8 KHz to prevent aliasing into baseband after the second upconversion to 16 KHz on the receiver side. This change amounted to recomputing the values of the cosine and sine look-up table.
+
+\textbf{Code:}
+\begin{verbatim}
+#define SQRT_3_DIV_2 0.866025403784438
+const float cosine[6] = {1.0, 1.0/2.0, -1.0/2.0, -1.0, -1.0/2.0, 1.0/2.0};
+const float sine[6] = {0, SQRT_3_DIV_2, SQRT_3_DIV_2, 0, -SQRT_3_DIV_2, -SQRT_3_DIV_2};
+\end{verbatim}
+
+\subsubsection{Task C + D: QAM Receiver Design}
+For 16-QAM, we create our symbol table using Gray Coding to implement symbol mapping, and then we tested the results on the oscilloscope by displaying the original in-phase component and a matching demodulated in-phase component. Similarly, we checked our quadrature components.
 
 %----------------------------------------------------------------------------------------
 %	SECTION 3
